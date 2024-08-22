@@ -1,0 +1,53 @@
+<!-- res/navigation/nav_graph.xml -->
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    app:startDestination="@id/itemListFragment">
+
+    <fragment
+        android:id="@+id/itemListFragment"
+        android:name="com.simplifiedkiosk.ui.itemlist.ItemListFragment"
+        android:label="Item List"
+        tools:layout="@layout/fragment_item_list">
+        <action
+            android:id="@+id/action_itemListFragment_to_itemDetailsFragment"
+            app:destination="@id/itemDetailsFragment" />
+        <action
+            android:id="@+id/action_itemListFragment_to_cartFragment"
+            app:destination="@id/cartFragment"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/itemDetailsFragment"
+        android:name="com.simplifiedkiosk.ui.itemdetails.ItemDetailsFragment"
+        android:label="Item Details"
+        tools:layout="@layout/fragment_item_details">
+        <argument
+            android:name="itemId"
+            app:argType="string" />
+        <action
+            android:id="@+id/action_itemDetailsFragment_to_cartFragment"
+            app:destination="@id/cartFragment" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/cartFragment"
+        android:name="com.simplifiedkiosk.ui.cart.CartFragment"
+        android:label="Cart"
+        tools:layout="@layout/fragment_cart">
+        <action
+            android:id="@+id/action_cartFragment_to_checkoutFragment"
+            app:destination="@id/checkoutFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/checkoutFragment"
+        android:name="com.simplifiedkiosk.ui.checkout.CheckoutFragment"
+        android:label="Checkout"
+        tools:layout="@layout/fragment_checkout">
+        <action
+            android:id="@+id/action_checkoutFragment_to_itemListFragment"
+            app:destination="@id/itemListFragment"/>
+    </fragment>
+</navigation>
