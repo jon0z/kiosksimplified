@@ -2,35 +2,34 @@ package com.simplifiedkiosk.model
 
 class Cart {
 
-    private val items = mutableListOf<CartItem>()
+    private val items = mutableListOf<FakeCartProduct>()
 
     // Add an item to the cart
-    fun addItem(item: Item) {
-        val cartItem = items.find { it.item.id == item.id }
+    fun addItem(item: FakeCartProduct) {
+        val cartItem = items.find { it.productId == item.productId }
         cartItem?.let {
-            it.quantity += 1
-        } ?: items.add(CartItem(item))
+            it.quantity = it.quantity?.plus(1)
+        } ?: items.add(FakeCartProduct(item.productId, 1))
     }
 
     // Remove an item from the cart
     fun removeItem(itemId: String) {
-        val cartItem = items.find { it.item.id == itemId }
-        cartItem?.let {
-            if (it.quantity > 1) {
-                it.quantity -= 1
-            } else {
-                items.remove(it)
+        val cartItem = items.find { it.productId.toString() == itemId  }
+        cartItem?.let { fakeCartProduct ->
+            fakeCartProduct.quantity?.let {
+                if(it > 1){
+                    fakeCartProduct.quantity = it - 1
+                } else {
+                    items.remove(cartItem)
+                }
             }
         }
     }
 
     // Get the total price of all items in the cart
-    fun getTotalPrice(): Double {
-        return items.sumOf { it.item.price * it.quantity }
-    }
 
     // Get the list of items in the cart
-    fun getItems(): List<CartItem> {
+    fun getItems(): List<FakeCartProduct> {
         return items
     }
 

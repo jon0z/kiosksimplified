@@ -37,9 +37,9 @@ class CartViewModel @Inject constructor(
 
     private fun loadCartItems() {
         viewModelScope.launch {
-            val items = cartRepository.getAllCartItems()
-            _cartItems.value = items
-            _totalPrice.value = items.sumOf { it.item.price * it.quantity }
+//            val items = cartRepository.getAllCartItems()
+//            _cartItems.value = items
+//            _totalPrice.value = items.sumOf { it.item.price * it.quantity }
         }
     }
 

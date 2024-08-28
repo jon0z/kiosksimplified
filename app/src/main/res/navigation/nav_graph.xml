@@ -23,8 +23,8 @@
         android:label="Item Details"
         tools:layout="@layout/fragment_item_details">
         <argument
-            android:name="itemId"
-            app:argType="string" />
+            android:name="productId"
+            app:argType="integer" />
         <action
             android:id="@+id/action_itemDetailsFragment_to_cartFragment"
             app:destination="@id/cartFragment" />

@@ -31,12 +31,41 @@
         android:text="Item Price"
         android:textSize="16sp" />
 
-    <Button
-        android:id="@+id/addToCartButton"
-        android:layout_width="wrap_content"
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="160dp"
+        android:id="@+id/product_image"
+        tools:src="@tools:sample/avatars"
+        android:layout_marginTop="16dp"/>
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:text="Add to Cart" />
+        android:orientation="horizontal"
+        android:weightSum="2">
+
+        <Button
+            android:id="@+id/addToCartButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginTop="16dp"
+            android:text="Add to Cart"
+            android:layout_marginEnd="8dp"
+            android:textAllCaps="false"
+            android:textSize="14sp"/>
+
+        <Button
+            android:id="@+id/remove_from_cart_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginTop="16dp"
+            android:text="Remove From Cart"
+            android:textSize="14sp"
+            android:textAllCaps="false"/>
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
 
     <TextView
         android:id="@+id/cartItemCountTextView"
@@ -48,11 +77,8 @@
 
     <Button
         android:id="@+id/viewCartButton"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="View Cart"
         android:layout_marginTop="16dp" />
-
-
-
 </LinearLayout>

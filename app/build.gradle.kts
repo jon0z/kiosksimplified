@@ -4,6 +4,7 @@ plugins {
     kotlin("android")
     kotlin("kapt")
     id("androidx.navigation.safeargs.kotlin")
+    alias(libs.plugins.compose.compiler)
 }
 
 android {
@@ -39,6 +40,11 @@ android {
 
     buildFeatures {
         viewBinding = true
+        compose = true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.3.2"
     }
 }
 
@@ -68,8 +74,8 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview:1.6.8")
 
     // DI - Dagger
-    implementation("com.google.dagger:dagger:2.52")
-    kapt("com.google.dagger:dagger-compiler:2.52")
+//    implementation("com.google.dagger:dagger:2.52")
+//    annotationProcessor("com.google.dagger:dagger-compiler:2.52")
     implementation("com.google.dagger:hilt-android:2.52")
     kapt("com.google.dagger:hilt-compiler:2.52")
 
@@ -99,8 +105,21 @@ dependencies {
 
     // Room database
     implementation("androidx.room:room-runtime:2.6.1")
-    kapt("androidx.room:room-compiler:2.6.1")
+    annotationProcessor("androidx.room:room-compiler:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
+
+    // Jetpack Compose
+    implementation ("androidx.compose.ui:ui:1.6.8")
+    implementation("androidx.compose.animation:animation-android:1.6.8")
+    implementation("androidx.compose.compiler:compiler:1.5.15")
+    implementation("androidx.compose.runtime:runtime-android:1.6.8")
+    implementation ("androidx.compose.material:material:1.6.8")
+    implementation ("androidx.compose.ui:ui-tooling:1.6.8")
+    implementation("androidx.activity:activity-compose:1.9.1")
+
+    // Images
+    implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation("io.coil-kt:coil-svg:2.7.0")
 }
 kapt{
     correctErrorTypes = true

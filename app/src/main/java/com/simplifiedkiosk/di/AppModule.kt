@@ -5,8 +5,10 @@ import androidx.room.Room
 import com.simplifiedkiosk.dao.CartItemDao
 import com.simplifiedkiosk.database.AppDatabase
 import com.simplifiedkiosk.model.Cart
+import com.simplifiedkiosk.network.FakeProductApiService
+import com.simplifiedkiosk.network.FakeProductsApiClient
 import com.simplifiedkiosk.repository.CartRepository
-import com.simplifiedkiosk.repository.ItemRepository
+import com.simplifiedkiosk.repository.ProductsRepository
 import com.simplifiedkiosk.ui.itemlist.ItemAdapter
 import dagger.Module
 import dagger.Provides
@@ -20,14 +22,6 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
-    @Provides
-    @Singleton
-    fun provideRetrofit(): Retrofit {
-        return Retrofit.Builder()
-            .baseUrl("https://api.example.com")
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-    }
 
     @Provides
     @Singleton
@@ -52,8 +46,13 @@ object AppModule {
     }
 
     @Provides
-    fun provideItemRepository(): ItemRepository {
-        return ItemRepository()
+    fun provideFakeProductsApiService(): FakeProductApiService {
+        return FakeProductsApiClient.apiService
+    }
+
+    @Provides
+    fun provideProductsRepository(productsApi: FakeProductApiService): ProductsRepository {
+        return ProductsRepository(productsApi)
     }
 
     @Provides
