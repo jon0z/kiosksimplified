@@ -2,7 +2,9 @@ package com.simplifiedkiosk.viewmodel
 
 import android.annotation.SuppressLint
 import android.app.Application
+import android.location.Geocoder
 import android.location.Location
+import android.os.Build
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -12,10 +14,12 @@ import com.google.android.gms.tasks.CancellationTokenSource
 import com.simplifiedkiosk.model.Cart
 import com.simplifiedkiosk.model.CartItem
 import com.simplifiedkiosk.model.Item
+import com.simplifiedkiosk.model.Product
 import com.simplifiedkiosk.repository.CartRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -25,11 +29,8 @@ class CartViewModel @Inject constructor(
     private val cartRepository: CartRepository
 ) : AndroidViewModel(application) {
 
-    private val _cartItems = MutableStateFlow<List<CartItem>>(emptyList())
-    val cartItems: StateFlow<List<CartItem>> = _cartItems
-
-    private val _totalPrice = MutableStateFlow(0.0)
-    val totalPrice: StateFlow<Double> = _totalPrice
+    private val _cartState = MutableStateFlow<CartState>(CartState.Loading)
+    val cartState: StateFlow<CartState> = _cartState
 
     init {
         loadCartItems()
@@ -37,12 +38,25 @@ class CartViewModel @Inject constructor(
 
     private fun loadCartItems() {
         viewModelScope.launch {
-//            val items = cartRepository.getAllCartItems()
-//            _cartItems.value = items
-//            _totalPrice.value = items.sumOf { it.item.price * it.quantity }
+            cartRepository.loadCartItems().collectLatest { result ->
+                result.fold({
+                    _cartState.value = CartState.SuccessLoadingCartItems(it)
+                }, {
+                    _cartState.value = CartState.FailedLoadingCartItems(it)
+                })
+            }
         }
     }
 
+    fun getCartProducts(): List<Product> {
+        return cartRepository.getCartItems()
+    }
+
+    fun getCartSize(): Int  = cartRepository.getCartTotalQuantity()
+
+    fun getCartTotalPrice(): Double {
+        return cartRepository.getCartTotalPrice()
+    }
 
     private val fusedLocationClient: FusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(application)
@@ -57,6 +71,33 @@ class CartViewModel @Inject constructor(
             CancellationTokenSource().token
         ).addOnSuccessListener { location: Location? ->
             _location.value = location
+
+
+            val geocoder = Geocoder(application)
+            location?.let {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    geocoder.getFromLocation(it.latitude, it.longitude, 1){addresses ->
+                        val address = addresses.first()
+                        val city = address.locality
+                        val state = address.adminArea
+                        val zipcode = address.postalCode
+                    }
+                } else {
+                    val address = geocoder.getFromLocation(it.latitude, it.longitude, 1)?.first()
+                    address?.let {
+                        val city = address.locality
+                        val state = address.adminArea
+                        val zipcode = address.postalCode
+                    }
+
+                }
+            }
         }
     }
+}
+
+sealed class CartState {
+    object Loading : CartState()
+    data class SuccessLoadingCartItems(val cartDetails: Map<String, String>) : CartState()
+    data class FailedLoadingCartItems(val error: Throwable) : CartState()
 }

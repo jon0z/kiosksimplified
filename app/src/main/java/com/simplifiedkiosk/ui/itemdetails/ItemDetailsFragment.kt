@@ -5,6 +5,8 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -41,6 +43,9 @@ class ItemDetailsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val toolBarTitle = (activity as AppCompatActivity).supportActionBar?.customView?.findViewById<TextView>(R.id.toolbar_title)
+        toolBarTitle?.text = "Product Details"
+
         itemDetailsViewModel.loadCartItems()
         // Get the item ID from the arguments
         val productId = arguments?.getInt("productId") ?: return
@@ -109,13 +114,13 @@ class ItemDetailsFragment : Fragment() {
             itemDetailsViewModel.addToCart(currentProduct)
         }
 
-        viewBinding.removeFromCartButton.setOnClickListener {
-            // check if any cart items of this type are selected
-            if(itemDetailsViewModel.getCartSize() != 0) {
-                itemDetailsViewModel.removeFromCart(currentProduct)
-            } else {
-                showAlertDialog(requireContext(), "Cart is empty", "No products to remove")
-            }
-        }
+//        viewBinding.removeFromCartButton.setOnClickListener {
+//            // check if any cart items of this type are selected
+//            if(itemDetailsViewModel.getCartSize() != 0) {
+//                itemDetailsViewModel.removeFromCart(currentProduct)
+//            } else {
+//                showAlertDialog(requireContext(), "Cart is empty", "No products to remove")
+//            }
+//        }
     }
 }

@@ -31,4 +31,8 @@ class CartRepository @Inject constructor(
     fun getCartTotalPrice(): Double = cart.getTotalPrice()
 
     fun getCartTotalQuantity():Int = cart.getTotalQuantity()
+
+    fun getCartItems(): List<Product> {
+        return cart.getProducts()
+    }
 }

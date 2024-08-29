@@ -1,5 +1,6 @@
 package com.simplifiedkiosk.model
 
+import android.util.Log
 import com.simplifiedkiosk.dao.CartDao
 import javax.inject.Inject
 
@@ -16,6 +17,7 @@ class Cart @Inject constructor(
         if(productsDb.isNotEmpty()){
             products.clear()
             products.addAll(productsDb)
+
             val cartMap = mutableMapOf<String, String>()
             cartMap["totalCartQuantity"] = getTotalQuantity().toString()
             cartMap["totalCartPrice"] = getTotalPrice().toString()
@@ -24,7 +26,6 @@ class Cart @Inject constructor(
         return result
     }
 
-    // Add an item to the cart
     suspend fun addProduct(product: Product): Result<Map<String, String>> {
         val productWithDbId = if(product.dbId == null){
             product.toCartItem().toProduct()
@@ -56,7 +57,6 @@ class Cart @Inject constructor(
         }
     }
 
-    // Remove an item from the cart
     suspend fun removeProduct(product: Product): Result<Map<String, String>> {
         val productWithDbId = if (product.dbId == null) product.toCartItem().toProduct() else product
         val isItemInDb = cartDao.cartProductWithItemIdExists(productWithDbId.productId.toString())

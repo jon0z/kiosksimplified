@@ -1,23 +1,34 @@
 package com.simplifiedkiosk.ui.cart
 
 import android.Manifest
+import android.location.Geocoder
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.simplifiedkiosk.R
 import com.simplifiedkiosk.databinding.FragmentCartBinding
+import com.simplifiedkiosk.utils.showAlertDialog
+import com.simplifiedkiosk.viewmodel.CartState
 import com.simplifiedkiosk.viewmodel.CartViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import pub.devrel.easypermissions.EasyPermissions
+import javax.inject.Inject
 
+
+private const val TAG = "CartFragment"
 @AndroidEntryPoint
 class CartFragment : Fragment(), EasyPermissions.PermissionCallbacks {
 
@@ -34,6 +45,9 @@ class CartFragment : Fragment(), EasyPermissions.PermissionCallbacks {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val toolBarTitle = (activity as AppCompatActivity).supportActionBar?.customView?.findViewById<TextView>(R.id.toolbar_title)
+        toolBarTitle?.text = "Cart"
+
         if (hasLocationPermission()) {
             cartViewModel.fetchLocation()
         } else {
@@ -43,33 +57,50 @@ class CartFragment : Fragment(), EasyPermissions.PermissionCallbacks {
         lifecycleScope.launch {
             cartViewModel.location.collect { location ->
                 location?.let {
-                    viewBinding.locationTextView.text = "Location: ${it.latitude}, ${it.longitude}"
-                    // You can also use this location to calculate shipping charges
+                    val geocoder = Geocoder(requireContext())
+                    val geoAddress = geocoder.getFromLocation(it.latitude, it.longitude, 1)?.first()
+                    geoAddress?.let { address ->
+                        val city = address.locality
+                        val state = address.adminArea
+                        val zipcode = address.postalCode
+                        viewBinding.locationTextView.text = "Location: $city, $state $zipcode"
+                    }
                 }
             }
         }
 
         viewBinding.cartRecyclerView.layoutManager = LinearLayoutManager(requireContext())
-        val cartAdapter = CartAdapter()
+        val cartAdapter = CartAdapter(){
+            // ask user to update quantity
+            Log.e(TAG, "onViewCreated: got click in from cart adapter with productId ${it.productId}\n dbId ${it.dbId}")
+        }
         viewBinding.cartRecyclerView.adapter = cartAdapter
 
-        // Observe the cart items and total price from the ViewModel
-        lifecycleScope.launch {
-            cartViewModel.cartItems.collect { cartItems ->
-                // Update RecyclerView adapter with cartItems
-                cartAdapter.submitList(cartItems)
-            }
-        }
 
-        lifecycleScope.launch {
-            cartViewModel.totalPrice.collectLatest { totalPrice ->
-                viewBinding.totalPriceTextView.text = "Total: $$totalPrice"
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED){
+                cartViewModel.cartState.collectLatest { state ->
+                    when (state) {
+                        is CartState.FailedLoadingCartItems -> {
+                            showAlertDialog(requireContext(), title = "Error", message = state.error.message.toString())
+                        }
+                        CartState.Loading -> {}
+                        is CartState.SuccessLoadingCartItems -> {
+                            val totalPrice = cartViewModel.getCartTotalPrice()
+                            cartAdapter.submitList(cartViewModel.getCartProducts())
+                            viewBinding.totalPriceTextView.text = "Total (Pre-tax): $$totalPrice"
+                        }
+                    }
+                }
             }
         }
 
         viewBinding.checkoutButton.setOnClickListener {
-            // handle checkout process
-            findNavController().navigate(R.id.action_cartFragment_to_checkoutFragment)
+            if(cartViewModel.getCartSize() != 0){
+                findNavController().navigate(R.id.action_cartFragment_to_checkoutFragment)
+            } else {
+                showAlertDialog(requireContext(), title = "Error", message = "Cart is empty")
+            }
         }
     }
 

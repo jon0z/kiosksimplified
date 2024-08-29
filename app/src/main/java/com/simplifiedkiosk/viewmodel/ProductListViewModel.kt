@@ -42,15 +42,17 @@ class ProductListViewModel @Inject constructor(
 
     fun loadCartItems(){
         viewModelScope.launch {
-            cartRepository.loadCartItems().collectLatest {result ->
+            cartRepository.loadCartItems().collectLatest { result ->
                 result.fold({
-                            _productsState.value = ProductStateResults.SuccessLoadingCartProducts(it)
+                    _productsState.value = ProductStateResults.SuccessLoadingCartProducts(it)
                 },{
                     _productsState.value = ProductStateResults.FailedLoadingCartProducts(it)
                 })
             }
         }
     }
+
+    fun getCartSize() = cartRepository.getCartTotalQuantity()
 }
 
 sealed class ProductStateResults {
