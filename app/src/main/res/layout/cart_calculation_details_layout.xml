@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="2">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:id="@+id/subtotal_label"
+            android:layout_weight="1"
+            android:text="Subtotal:"
+            android:textColor="@android:color/black"
+            />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:id="@+id/subtotal_textview"
+            android:layout_weight="1"
+            tools:text="$100,000.00"
+            android:gravity="end"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"/>
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="2">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:id="@+id/taxes_label"
+            android:layout_weight="1"
+            android:text="Taxes:"
+            android:textColor="@android:color/black"
+            />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:id="@+id/taxes_textview"
+            android:layout_weight="1"
+            tools:text="$100,000.00"
+            android:gravity="end"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"/>
+    </androidx.appcompat.widget.LinearLayoutCompat>
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="2">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:id="@+id/delivery_fee_label"
+            android:layout_weight="1"
+            android:text="Shipping fee:"
+            android:textColor="@android:color/black"
+            />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:id="@+id/delivery_fee_textview"
+            android:layout_weight="1"
+            android:text="Calculating..."
+            android:gravity="end"
+            android:textStyle="bold"
+            android:textColor="@android:color/black"/>
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@android:color/darker_gray"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="16dp"/>
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:weightSum="2">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:id="@+id/total_label"
+            android:layout_weight="1"
+            android:text="Total:"
+            android:layout_marginStart="8dp"
+            android:textColor="@android:color/black"
+            />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:id="@+id/total_textview"
+            android:layout_weight="1"
+            android:text="Calculating..."
+            android:gravity="end"
+            android:textStyle="bold"
+            android:textColor="#007BFF"/>
+    </androidx.appcompat.widget.LinearLayoutCompat>
+</androidx.appcompat.widget.LinearLayoutCompat>

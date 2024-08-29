@@ -29,8 +29,8 @@ class CartViewModel @Inject constructor(
     private val cartRepository: CartRepository
 ) : AndroidViewModel(application) {
 
-    private val _cartState = MutableStateFlow<CartState>(CartState.Loading)
-    val cartState: StateFlow<CartState> = _cartState
+    private val _cartState = MutableStateFlow<CartState?>(null)
+    val cartState: StateFlow<CartState?> = _cartState
 
     init {
         loadCartItems()

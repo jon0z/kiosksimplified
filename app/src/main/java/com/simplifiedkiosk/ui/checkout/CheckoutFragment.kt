@@ -11,15 +11,19 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.simplifiedkiosk.R
 import com.simplifiedkiosk.databinding.FragmentCheckoutBinding
 import com.simplifiedkiosk.utils.showAlertDialog
+import com.simplifiedkiosk.viewmodel.CheckoutStateResults
 import com.simplifiedkiosk.viewmodel.CheckoutViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -52,12 +56,12 @@ class CheckoutFragment : Fragment() {
             }
         }
 
-        lifecycleScope.launch {
-            checkoutViewModel.cartItems.collectLatest { cartItems ->
-                // Update RecyclerView adapter with cartItems (adapter logic to be implemented)
-                checkoutAdapter.submitList(cartItems)
-            }
-        }
+//        lifecycleScope.launch {
+//            checkoutViewModel.cartItems.collectLatest { cartItems ->
+//                // Update RecyclerView adapter with cartItems (adapter logic to be implemented)
+//                checkoutAdapter.submitList(cartItems)
+//            }
+//        }
 
         viewBinding.proceedToPaymentButton.setOnClickListener {
             if(!viewBinding.shippingAddressEditText.text.isNullOrBlank()){
@@ -68,6 +72,30 @@ class CheckoutFragment : Fragment() {
                     title = "Missing Shipping Address",
                     message = "Please add shipping address before checkout",
                 )
+            }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED){
+                checkoutViewModel.checkoutState
+                    .filterNotNull()
+                    .collectLatest { state ->
+                        when(state){
+                            is CheckoutStateResults.FailedLoadingCartItems -> {}
+                            is CheckoutStateResults.LoadedCartItems -> {
+                                val cartProduct = state.checkoutState.cartProducts
+                                val cartPrice = state.checkoutState.totalCartPrice
+                                val cartQuantity = state.checkoutState.totalCartQuantity
+
+                                // update recycler view with new cart products
+
+                                // update total price view
+
+
+                            }
+                            CheckoutStateResults.Loading -> {}
+                        }
+                    }
             }
         }
     }

@@ -8,7 +8,6 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.simplifiedkiosk.R
-import com.simplifiedkiosk.model.CartItem
 import com.simplifiedkiosk.model.Product
 
 class CartAdapter(private val onItemClick: (Product) -> Unit) : ListAdapter<Product, CartAdapter.CartViewHolder>(CartItemDiffCallback()) {
@@ -28,20 +27,52 @@ class CartAdapter(private val onItemClick: (Product) -> Unit) : ListAdapter<Prod
         private val itemQuantityTextView: TextView = itemView.findViewById(R.id.cartItemQuantityTextView)
         private val itemPriceTextView: TextView = itemView.findViewById(R.id.cartItemPriceTextView)
 
-        fun bind(cartItem: Product) {
-            itemNameTextView.text = cartItem.title
-            itemQuantityTextView.text = "Qty: ${cartItem.quantity}"
-            if(cartItem.price != null && cartItem.quantity != null){
-                cartItem.quantity?.let {
-                    val totalPrice = cartItem.price.toDouble() * it
+        fun bind(cartProduct: Product) {
+            itemNameTextView.text = cartProduct.title
+            itemQuantityTextView.text = "Qty: ${cartProduct.quantity}"
+            if(cartProduct.price != null && cartProduct.quantity != null){
+                cartProduct.quantity?.let {
+                    val totalPrice = cartProduct.price.toDouble() * it
                     itemPriceTextView.text = "$$totalPrice"
                 }
             } else {
                 itemPriceTextView.text = "$0.00"
             }
             itemView.setOnClickListener {
-                onItemClick.invoke(cartItem)
+                onItemClick.invoke(cartProduct)
             }
+        }
+    }
+
+    fun updateCartItem(newProduct: Product){
+        val existingItemPosition = currentList.indexOfFirst { it.productId == newProduct.productId }
+        if (existingItemPosition != -1){
+            val existingItem = getItem(existingItemPosition)
+            if(existingItem.quantity!! > 1){
+                existingItem.quantity = existingItem.quantity!! - 1
+                notifyItemChanged(existingItemPosition)
+            } else {
+                removeItemInternally(existingItemPosition)
+            }
+        } else {
+            submitList(currentList + newProduct)
+        }
+    }
+
+    fun removeItem(productId: String){
+        val existingItemPosition = currentList.indexOfFirst { it.productId == productId.toInt() }
+        if (existingItemPosition != -1){
+            removeItemInternally(existingItemPosition)
+        }
+    }
+
+    private fun removeItemInternally(position: Int){
+        currentList.removeAt(position)
+        notifyItemRemoved(position)
+        if(currentList.isEmpty()){
+            submitList(emptyList())
+        } else {
+            notifyItemRangeChanged(position, currentList.size)
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.simplifiedkiosk.ui.cart
 
 import android.Manifest
+import android.location.Address
 import android.location.Geocoder
 import android.os.Bundle
 import android.util.Log
@@ -12,7 +13,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.liveData
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -23,8 +26,11 @@ import com.simplifiedkiosk.viewmodel.CartState
 import com.simplifiedkiosk.viewmodel.CartViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import pub.devrel.easypermissions.EasyPermissions
+import java.text.NumberFormat
 import javax.inject.Inject
 
 
@@ -34,6 +40,7 @@ class CartFragment : Fragment(), EasyPermissions.PermissionCallbacks {
 
     private val cartViewModel: CartViewModel by viewModels()
     private lateinit var viewBinding: FragmentCartBinding
+    private var mCurrentAddress: Address? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -54,21 +61,6 @@ class CartFragment : Fragment(), EasyPermissions.PermissionCallbacks {
             requestLocationPermission()
         }
 
-        lifecycleScope.launch {
-            cartViewModel.location.collect { location ->
-                location?.let {
-                    val geocoder = Geocoder(requireContext())
-                    val geoAddress = geocoder.getFromLocation(it.latitude, it.longitude, 1)?.first()
-                    geoAddress?.let { address ->
-                        val city = address.locality
-                        val state = address.adminArea
-                        val zipcode = address.postalCode
-                        viewBinding.locationTextView.text = "Location: $city, $state $zipcode"
-                    }
-                }
-            }
-        }
-
         viewBinding.cartRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         val cartAdapter = CartAdapter(){
             // ask user to update quantity
@@ -79,16 +71,25 @@ class CartFragment : Fragment(), EasyPermissions.PermissionCallbacks {
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED){
-                cartViewModel.cartState.collectLatest { state ->
+                cartViewModel.cartState
+                    .filterNotNull()
+                    .collectLatest { state ->
                     when (state) {
                         is CartState.FailedLoadingCartItems -> {
                             showAlertDialog(requireContext(), title = "Error", message = state.error.message.toString())
                         }
                         CartState.Loading -> {}
                         is CartState.SuccessLoadingCartItems -> {
-                            val totalPrice = cartViewModel.getCartTotalPrice()
                             cartAdapter.submitList(cartViewModel.getCartProducts())
-                            viewBinding.totalPriceTextView.text = "Total (Pre-tax): $$totalPrice"
+                            val subtotal = cartViewModel.getCartTotalPrice()
+                            updateCartCalculations(cartViewModel.getCartTotalPrice(), 0.08)
+                            cartViewModel.location
+                                .filterNotNull()
+                                .map {
+                                    val geocoder = Geocoder(requireContext())
+                                    geocoder.getFromLocation(it.latitude, it.longitude, 1)
+                                }.filterNotNull()
+                                .collectLatest { updateCartCalculations(subtotal, 0.08, it.first()) }
                         }
                     }
                 }
@@ -118,6 +119,32 @@ class CartFragment : Fragment(), EasyPermissions.PermissionCallbacks {
             123,
             Manifest.permission.ACCESS_FINE_LOCATION
         )
+    }
+
+    private fun updateCartCalculations(subtotal: Double, tax: Double, address: Address? = null) {
+        mCurrentAddress = address
+
+        val totalPriceFmt = NumberFormat.getCurrencyInstance().format(subtotal)
+        viewBinding.cartCalculationsContainer.subtotalTextview.text = "$totalPriceFmt"
+
+        val totalTax = subtotal * tax // 8% tax
+        val totalTaxFmt = NumberFormat.getCurrencyInstance().format(totalTax)
+        viewBinding.cartCalculationsContainer.taxesTextview.text = "$totalTaxFmt"
+
+        address?.let {
+            val city = it.locality
+            val state = it.adminArea
+            val zipcode = it.postalCode
+            viewBinding.locationTextView.text = "Location: $city, $state $zipcode"
+
+            val deliveryFee = subtotal * 0.25
+            val deliveryFeeFmt = NumberFormat.getCurrencyInstance().format(deliveryFee)
+            viewBinding.cartCalculationsContainer.deliveryFeeTextview.text = "$deliveryFeeFmt"
+
+            val netTotal = subtotal.plus(tax).plus(deliveryFee)
+            val netTotalFmt = NumberFormat.getCurrencyInstance().format(netTotal)
+            viewBinding.cartCalculationsContainer.totalTextview.text = "$netTotalFmt"
+        }
     }
 
     override fun onPermissionsGranted(requestCode: Int, perms: MutableList<String>) {

@@ -54,7 +54,8 @@ class ItemDetailsFragment : Fragment() {
         // Load item details
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                itemDetailsViewModel.itemDetailsState.collectLatest { state ->
+                itemDetailsViewModel.itemDetailsState
+                    .collectLatest { state ->
                     when (state) {
                         is ItemDetailsState.SuccessLoadingProductDetails -> {
                             currentProduct = state.product
