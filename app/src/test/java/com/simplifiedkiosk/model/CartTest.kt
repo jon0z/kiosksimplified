@@ -40,7 +40,8 @@ class CartTest {
 
     @Test
     fun `test add product success when product is not in db`() = runTest{
-        coEvery { cartDao.cartItemExists(any()) } returns false
+        coEvery { cartDao.cartProductWithItemIdExists(any()) } returns false
+//        coEvery { cartDao.cartItemExists(any()) } returns false
         coEvery { cartDao.insertCartItem(any()) } returns 200L
         coEvery { Log.e(any(), any()) } returns 1
 
@@ -58,10 +59,10 @@ class CartTest {
     fun `test add product success when product is in db`() = runTest {
         mockkObject(productMock)
         every { productMock.quantity } returns 1
-        coEvery { cartDao.cartItemExists(any()) } returns true
+        every { productMock.dbId } returns 1
+        coEvery { cartDao.getCartProductByItemId(any()) } returns listOf(productMock.toCartItem())
+        coEvery { cartDao.cartProductWithItemIdExists(any()) } returns true
         coEvery { cartDao.updateCartItem(any()) } returns 1
-        coEvery { Log.e(any(), any()) } returns 1
-
 
         val result = cart.addProduct(productMock)
 

@@ -106,14 +106,16 @@ class ItemDetailsFragment : Fragment() {
         }
 
         viewBinding.addToCartButton.setOnClickListener {
-            Log.e(TAG, "before calling addtoCart()", )
             itemDetailsViewModel.addToCart(currentProduct)
-            Log.e(TAG, "addtoCartButton clicked", )
         }
 
         viewBinding.removeFromCartButton.setOnClickListener {
             // check if any cart items of this type are selected
-            itemDetailsViewModel.removeFromCart(currentProduct)
+            if(itemDetailsViewModel.getCartSize() != 0) {
+                itemDetailsViewModel.removeFromCart(currentProduct)
+            } else {
+                showAlertDialog(requireContext(), "Cart is empty", "No products to remove")
+            }
         }
     }
 }

@@ -1,6 +1,5 @@
 package com.simplifiedkiosk.model
 
-import android.util.Log
 import com.simplifiedkiosk.dao.CartDao
 import javax.inject.Inject
 
@@ -27,20 +26,13 @@ class Cart @Inject constructor(
 
     // Add an item to the cart
     suspend fun addProduct(product: Product): Result<Map<String, String>> {
-        Log.e(TAG, "*** addProduct: got button click", )
         val productWithDbId = if(product.dbId == null){
             product.toCartItem().toProduct()
         } else product
 
-        val isProductInDb = if(productWithDbId.dbId == null) {
-            false
-        } else {
-            cartDao.cartItemExists(productWithDbId.dbId)
-        }
-        Log.e(TAG, "*** isProductInDb: $isProductInDb", )
+        val isIteminDb = cartDao.cartProductWithItemIdExists(productWithDbId.productId.toString())
 
-        if (!isProductInDb ) {
-            Log.e(TAG, "*** product is in db", )
+        if (!isIteminDb ) {
             productWithDbId.quantity = 1
             val newRowId = cartDao.insertCartItem(productWithDbId.toCartItem())
             return if(newRowId != -1L) {
@@ -50,9 +42,11 @@ class Cart @Inject constructor(
                 Result.failure(Throwable("Failed to add to cart"))
             }
         } else {
-            Log.e(TAG, "*** product is not in db", )
-            productWithDbId.quantity = (productWithDbId.quantity ?: 0) + 1
-            val rowUpdated = cartDao.updateCartItem(productWithDbId.toCartItem())
+            val productsFromDb = cartDao.getCartProductByItemId(productWithDbId.productId.toString())
+            val existingDbProduct = productsFromDb.first().toProduct()
+            existingDbProduct.quantity = (existingDbProduct.quantity ?: 0) + 1
+            val rowUpdated = cartDao.updateCartItem(existingDbProduct.toCartItem())
+
             return if(rowUpdated != 0) {
                 products.add(productWithDbId)
                 updateCartMap()
@@ -64,10 +58,22 @@ class Cart @Inject constructor(
 
     // Remove an item from the cart
     suspend fun removeProduct(product: Product): Result<Map<String, String>> {
-        val isProductInDb = if(product.dbId != null) cartDao.cartItemExists(product.dbId) else false
-        if (isProductInDb) {
-            val rowDeleted = product.dbId?.let { cartDao.deleteCartItem(product.toCartItem()) }  ?: -1
-            return if(rowDeleted != 0){
+        val productWithDbId = if (product.dbId == null) product.toCartItem().toProduct() else product
+        val isItemInDb = cartDao.cartProductWithItemIdExists(productWithDbId.productId.toString())
+
+        if (isItemInDb) {
+            val productsFromDb = cartDao.getCartProductByItemId(productWithDbId.productId.toString())
+            val existingDbProduct = productsFromDb.first().toProduct()
+            val rowModified = existingDbProduct.quantity?.let {
+                if(it > 1) {
+                    existingDbProduct.quantity = it - 1
+                    cartDao.updateCartItem(existingDbProduct.toCartItem())
+                } else {
+                    existingDbProduct.quantity = 0
+                    cartDao.deleteCartItem(existingDbProduct.toCartItem())
+                }
+            }
+            return if(rowModified != 0){
                 products.remove(product)
                 updateCartMap()
             } else {
@@ -93,7 +99,7 @@ class Cart @Inject constructor(
         products.forEach {
             val price = it.price?.toDouble() ?: 0.0
             val quantity = it.quantity ?: 0
-            totalPrice = price * quantity
+            totalPrice += price * quantity
         }
 
         return totalPrice
