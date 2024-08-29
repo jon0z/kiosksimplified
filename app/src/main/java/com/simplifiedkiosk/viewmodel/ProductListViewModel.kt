@@ -2,7 +2,8 @@ package com.simplifiedkiosk.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.simplifiedkiosk.model.FakeProduct
+import com.simplifiedkiosk.model.Product
+import com.simplifiedkiosk.repository.CartRepository
 import com.simplifiedkiosk.repository.ProductsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +15,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProductListViewModel @Inject constructor(
-    private val productsRepository: ProductsRepository
+    private val productsRepository: ProductsRepository,
+    private val cartRepository: CartRepository,
 ) : ViewModel() {
 
     private val _productsState = MutableStateFlow<ProductStateResults>(ProductStateResults.Loading)
@@ -37,10 +39,25 @@ class ProductListViewModel @Inject constructor(
             }
         }
     }
+
+    fun loadCartItems(){
+        viewModelScope.launch {
+            cartRepository.loadCartItems().collectLatest {result ->
+                result.fold({
+                            _productsState.value = ProductStateResults.SuccessLoadingCartProducts(it)
+                },{
+                    _productsState.value = ProductStateResults.FailedLoadingCartProducts(it)
+                })
+            }
+        }
+    }
 }
 
 sealed class ProductStateResults {
     object Loading : ProductStateResults()
-    data class FetchProductsSuccess(val products: List<FakeProduct>) : ProductStateResults()
+    data class FetchProductsSuccess(val products: List<Product>) : ProductStateResults()
     data class FetchProductsError(val error: Throwable) : ProductStateResults()
+
+    data class SuccessLoadingCartProducts(val cartDetails: Map<String, String>) : ProductStateResults()
+    data class FailedLoadingCartProducts(val error: Throwable) : ProductStateResults()
 }

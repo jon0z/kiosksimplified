@@ -7,24 +7,18 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".ui.itemlist.ItemListFragment">
+
     <androidx.compose.ui.platform.ComposeView
         android:id="@+id/composeView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"/>
 
-<!--    <androidx.recyclerview.widget.RecyclerView-->
-<!--        android:id="@+id/recyclerView"-->
-<!--        android:layout_width="match_parent"-->
-<!--        android:layout_height="0dp"-->
-<!--        android:layout_weight="1"-->
-<!--        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"-->
-<!--        tools:listitem="@layout/item_list_row" />-->
-
     <Button
         android:id="@+id/viewCartButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
-        android:text="View Cart" />
+        android:text="View Cart"
+        android:textAllCaps="false"/>
 </LinearLayout>

@@ -18,7 +18,7 @@ import androidx.lifecycle.setViewTreeLifecycleOwner
 import androidx.navigation.fragment.findNavController
 import com.simplifiedkiosk.R
 import com.simplifiedkiosk.databinding.FragmentItemListBinding
-import com.simplifiedkiosk.model.FakeProduct
+import com.simplifiedkiosk.model.Product
 import com.simplifiedkiosk.viewmodel.ProductListViewModel
 import com.simplifiedkiosk.viewmodel.ProductStateResults
 import dagger.hilt.android.AndroidEntryPoint
@@ -33,7 +33,7 @@ class ItemListFragment : Fragment() {
     private val productsListViewModel: ProductListViewModel by viewModels()
     private lateinit var viewBinding: FragmentItemListBinding
 
-    private var selectedProduct by mutableStateOf<FakeProduct?>(null)
+    private var selectedProduct by mutableStateOf<Product?>(null)
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -45,6 +45,7 @@ class ItemListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        productsListViewModel.loadCartItems()
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED){
                 productsListViewModel.productsState.collectLatest { state ->
@@ -68,27 +69,21 @@ class ItemListFragment : Fragment() {
                         ProductStateResults.Loading -> {
                             Log.e(TAG, "loading products")
                         }
+
+                        is ProductStateResults.FailedLoadingCartProducts -> {
+                            Log.e(TAG, "failed to load cart products")
+                        }
+                        is ProductStateResults.SuccessLoadingCartProducts -> {
+                            val quantity = state.cartDetails["totalCartQuantity"]
+                            viewBinding.viewCartButton.text = "View Cart ($quantity)"
+                        }
                     }
                 }
             }
         }
 
-//        lifecycleScope.launch {
-//            cartViewModel.cartItems.collectLatest { cartItems ->
-//                var itemCount = 0
-//                cartItems.forEach {
-//                    itemCount += it.quantity
-//                }
-//                viewBinding.viewCartButton.text = if (itemCount > 0) {
-//                    "View Cart ($itemCount)"
-//                } else {
-//                    "View Cart"
-//                }
-//            }
-//        }
-
         viewBinding.viewCartButton.setOnClickListener {
-//            findNavController().navigate(R.id.action_itemListFragment_to_cartFragment)
+
         }
     }
 }

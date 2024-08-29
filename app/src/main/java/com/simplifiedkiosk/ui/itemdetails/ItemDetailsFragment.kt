@@ -13,8 +13,8 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.simplifiedkiosk.R
 import com.simplifiedkiosk.databinding.FragmentItemDetailsBinding
-import com.simplifiedkiosk.model.FakeCartProduct
-import com.simplifiedkiosk.model.toFakeCartProduct
+import com.simplifiedkiosk.model.Product
+import com.simplifiedkiosk.utils.showAlertDialog
 import com.simplifiedkiosk.viewmodel.ItemDetailsState
 import com.simplifiedkiosk.viewmodel.ItemDetailsViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -29,7 +29,7 @@ class ItemDetailsFragment : Fragment() {
     private lateinit var viewBinding: FragmentItemDetailsBinding
     private val itemDetailsViewModel: ItemDetailsViewModel by viewModels()
 
-    private lateinit var currentProduct: FakeCartProduct
+    private lateinit var currentProduct: Product
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -41,6 +41,7 @@ class ItemDetailsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        itemDetailsViewModel.loadCartItems()
         // Get the item ID from the arguments
         val productId = arguments?.getInt("productId") ?: return
         itemDetailsViewModel.loadProductDetails(productId.toString())
@@ -51,49 +52,45 @@ class ItemDetailsFragment : Fragment() {
                 itemDetailsViewModel.itemDetailsState.collectLatest { state ->
                     when (state) {
                         is ItemDetailsState.SuccessLoadingProductDetails -> {
-                            Log.e(TAG, "SuccessLoadingProductDetails: ${state.product}")
-                            currentProduct = state.product.toFakeCartProduct()
-
+                            currentProduct = state.product
                             viewBinding.itemName.text = state.product.title
                             viewBinding.itemDescription.text = state.product.description
                             viewBinding.itemPrice.text = "$${state.product.price}"
-                            viewBinding.productImage.setImageResource(R.drawable.shopping_cart_image_placeholder)
+                            viewBinding.productImage.setImageResource(R.drawable.product_image_placeholder_144x144)
                         }
                         is ItemDetailsState.FailedLoadingProductDetails -> {
-                            Log.e(TAG, "Failed to load item details\n ${state.error.message}")
+                            showAlertDialog(requireContext(), title = "Error", message = state.error.message.toString())
+                        }
+                        ItemDetailsState.Loading -> { Log.e(TAG, "Loading") }
+                        is ItemDetailsState.FailedAddingProductToCart -> {
+                            showAlertDialog(requireContext(), "Error", state.error.message.toString())
+                        }
+                        is ItemDetailsState.SuccessAddingProductToCart -> {
+                            val totalCartQuantity = state.cartDetails["totalCartQuantity"]
+                            viewBinding.cartItemCountTextView.text = "Items in Cart: $totalCartQuantity"
+                            val totalCartPrice = state.cartDetails["totalCartPrice"]
+                            viewBinding.cartTotalPriceTextView.text = "Cart Total (pre-tax): $$totalCartPrice"
+                            viewBinding.viewCartButton.text = "View Cart($totalCartQuantity)"
                         }
 
-                        ItemDetailsState.Loading -> {
-                            Log.e(TAG, "Loading")
+                        is ItemDetailsState.FailedRemovingProductFromCart -> {
+                            showAlertDialog(requireContext(), "Error", state.error.message.toString())
                         }
-                        is ItemDetailsState.FailedCreatingCart -> {
-                            Log.e(TAG, "FailedCreatingCart\n ${state.error.message}")
-                        }
-                        is ItemDetailsState.SuccessCreatingCart -> {
-                            Log.e(TAG, "SuccessCreatingCart ${state.cart}")
-                            val cart = state.cart
-                            var cartTotalProducts = 0
-                            if(!cart.products.isNullOrEmpty()){
-                                cart.products.forEach { fakeCartProduct ->
-                                    fakeCartProduct.quantity?.let { cartTotalProducts += it }
-                                }
-                            }
-//                            val cartQuantity = cart.products.sumOf { it.quantity }
-                            Log.e(TAG, "cartQuantity: $cartTotalProducts", )
-                            viewBinding.cartItemCountTextView.text = "Items in Cart: $cartTotalProducts"
+                        is ItemDetailsState.SuccessRemovingProductFromCart -> {
+                            val totalCartQuantity = state.cartDetails["totalCartQuantity"]
+                            viewBinding.cartItemCountTextView.text = "Items in Cart: $totalCartQuantity"
+                            val totalCartPrice = state.cartDetails["totalCartPrice"]
+                            viewBinding.cartTotalPriceTextView.text = "Cart Total (Pre-tax): $$totalCartPrice"
+                            viewBinding.viewCartButton.text = if(totalCartQuantity == "0") "View Cart" else "View Cart($totalCartQuantity)"
                         }
 
-                        is ItemDetailsState.FailedToGetUserCarts -> {
-                            Log.e(TAG, "FailedToGetUserCarts\n ${state.error.message}")
-                        }
-                        is ItemDetailsState.SuccessGettingUserCarts -> {
-                            val carts = state.carts
-                            Log.e(TAG, "SuccessGettingUserCarts ${carts }}")
-                            if(carts.isNotEmpty()){
-                                carts.forEach {
-                                    Log.e(TAG, "$it")
-                                }
-                            }
+                        ItemDetailsState.FailedLoadingCartItems -> {}
+                        is ItemDetailsState.SuccessLoadingCartItems -> {
+                            val totalCartQuantity = state.cartDetails["totalCartQuantity"]
+                            viewBinding.cartItemCountTextView.text = "Items in Cart: $totalCartQuantity"
+                            val totalCartPrice = state.cartDetails["totalCartPrice"]
+                            viewBinding.cartTotalPriceTextView.text = "Cart Total (Pre-tax): $$totalCartPrice"
+                            viewBinding.viewCartButton.text = if(totalCartQuantity == "0") "View Cart" else "View Cart($totalCartQuantity)"
                         }
                     }
                 }
@@ -101,17 +98,22 @@ class ItemDetailsFragment : Fragment() {
         }
 
         viewBinding.viewCartButton.setOnClickListener {
-            findNavController().navigate(R.id.action_itemDetailsFragment_to_cartFragment)
+            if(itemDetailsViewModel.getCartSize() != 0) {
+                findNavController().navigate(R.id.action_itemDetailsFragment_to_cartFragment)
+            } else {
+                showAlertDialog(requireContext(), "Cart is empty", "Please add items to continue")
+            }
         }
 
         viewBinding.addToCartButton.setOnClickListener {
-            Log.e(TAG, "clicked add to cart")
-            itemDetailsViewModel.addToCart(listOf(currentProduct))
-            Log.e(TAG, "addToCart() called", )
+            Log.e(TAG, "before calling addtoCart()", )
+            itemDetailsViewModel.addToCart(currentProduct)
+            Log.e(TAG, "addtoCartButton clicked", )
         }
 
-        viewBinding.viewCartButton.setOnClickListener {
-            itemDetailsViewModel.getUserCart()
+        viewBinding.removeFromCartButton.setOnClickListener {
+            // check if any cart items of this type are selected
+            itemDetailsViewModel.removeFromCart(currentProduct)
         }
     }
 }

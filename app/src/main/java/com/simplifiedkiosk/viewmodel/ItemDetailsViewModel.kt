@@ -1,11 +1,13 @@
 package com.simplifiedkiosk.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.simplifiedkiosk.model.Cart
 import com.simplifiedkiosk.model.FakeCart
-import com.simplifiedkiosk.model.FakeCartProduct
-import com.simplifiedkiosk.model.FakeProduct
+import com.simplifiedkiosk.model.Product
 import com.simplifiedkiosk.model.Item
+import com.simplifiedkiosk.repository.CartRepository
 import com.simplifiedkiosk.repository.ProductsRepository
 import com.simplifiedkiosk.utils.getCurrentDate
 
@@ -14,16 +16,16 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
 
 @HiltViewModel
 class ItemDetailsViewModel @Inject constructor(
-    private val repository: ProductsRepository
+    private val repository: ProductsRepository,
+    private val cartRepository: CartRepository
 ) : ViewModel() {
-
-    private val _itemDetails = MutableStateFlow<Item?>(null)
-    val itemDetails: StateFlow<Item?> = _itemDetails
-
     private var _itemDetailsState = MutableStateFlow<ItemDetailsState>(ItemDetailsState.Loading)
     val itemDetailsState: StateFlow<ItemDetailsState> = _itemDetailsState
 
@@ -39,32 +41,41 @@ class ItemDetailsViewModel @Inject constructor(
         }
     }
 
-    fun addToCart(products: List<FakeCartProduct>) {
-        val userId = "1"
-        val date: String = getCurrentDate()
-
+    fun addToCart(product: Product) {
+        Log.e("ItemDetailsViewModel", "following button click", )
         viewModelScope.launch {
-            repository.addToCart(userId, date, products).collectLatest { result ->
-                result.fold({
-                    _itemDetailsState.value = ItemDetailsState.SuccessCreatingCart(it)
+            cartRepository.addProductToCart(product = product).collectLatest { result ->
+                result.fold({ cartMap ->
+                    _itemDetailsState.value = ItemDetailsState.SuccessAddingProductToCart(cartMap)
                 }, {
-                    _itemDetailsState.value = ItemDetailsState.FailedCreatingCart(it)
+                    _itemDetailsState.value = ItemDetailsState.FailedAddingProductToCart(it)
                 })
             }
         }
     }
 
-    fun getUserCart(userId: String? = "2") {
+    fun removeFromCart(product: Product) {
         viewModelScope.launch {
-            userId?.let {
-                repository.getCartByUserId(userId).collectLatest {result ->
-                    result.fold({
-                        _itemDetailsState.value = ItemDetailsState.SuccessGettingUserCarts(it)
-                    },{
-                        _itemDetailsState.value = ItemDetailsState.FailedToGetUserCarts(it)
-                    })
+            cartRepository.removeProductFromCart(product).collectLatest { result ->
+                result.fold({ cartMap ->
+                    _itemDetailsState.value = ItemDetailsState.SuccessRemovingProductFromCart(cartMap)
+                }, {
+                    _itemDetailsState.value = ItemDetailsState.FailedRemovingProductFromCart(it)
+                })
+            }
+        }
+    }
 
-                }
+    fun getCartSize(): Int = cartRepository.getCartTotalQuantity()
+
+    fun loadCartItems() {
+        viewModelScope.launch {
+            cartRepository.loadCartItems().collectLatest { result ->
+                result.fold({
+                    _itemDetailsState.value = ItemDetailsState.SuccessLoadingCartItems(it)
+                }, {
+                    _itemDetailsState.value = ItemDetailsState.FailedLoadingCartItems
+                })
             }
         }
     }
@@ -72,12 +83,12 @@ class ItemDetailsViewModel @Inject constructor(
 
 sealed class ItemDetailsState {
     object Loading : ItemDetailsState()
-    data class SuccessLoadingProductDetails(val product: FakeProduct): ItemDetailsState()
+    data class SuccessLoadingProductDetails(val product: Product): ItemDetailsState()
     data class FailedLoadingProductDetails(val error: Throwable): ItemDetailsState()
-
-    data class SuccessCreatingCart(val cart: FakeCart): ItemDetailsState()
-    data class FailedCreatingCart(val error: Throwable): ItemDetailsState()
-
-    data class SuccessGettingUserCarts(val carts: List<FakeCart>): ItemDetailsState()
-    data class FailedToGetUserCarts(val error: Throwable): ItemDetailsState()
+    data class SuccessAddingProductToCart(val cartDetails: Map<String, String>): ItemDetailsState()
+    data class FailedAddingProductToCart(val error: Throwable): ItemDetailsState()
+    data class SuccessRemovingProductFromCart(val cartDetails: Map<String, String>): ItemDetailsState()
+    data class FailedRemovingProductFromCart(val error: Throwable): ItemDetailsState()
+    data class SuccessLoadingCartItems(val cartDetails: Map<String, String>): ItemDetailsState()
+    object FailedLoadingCartItems: ItemDetailsState()
 }

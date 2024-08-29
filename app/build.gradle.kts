@@ -19,6 +19,12 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        android.buildFeatures.buildConfig = true
+
+        buildConfigField("String", "COMMERCEJS_SANDBOX_API_KEY", "\"pk_test_581656a7d1cd31a600a31ca14f27254f021e8d6020c37\"")
+        buildConfigField("String", "COMMERCEJS_LIVE_API_KEY", "\"pk_58165b998b32daa47b2daab956c91c6037e6dd659d4a4\"")
+
     }
 
     buildTypes {
@@ -65,8 +71,9 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
     testImplementation("io.mockk:mockk:1.13.5")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.0")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
     androidTestImplementation("io.mockk:mockk-android:1.13.5")
+    testImplementation ("com.google.truth:truth:1.4.4")
 
     // Jetpack Compose
     implementation("androidx.compose.ui:ui:1.6.8")
@@ -74,8 +81,6 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview:1.6.8")
 
     // DI - Dagger
-//    implementation("com.google.dagger:dagger:2.52")
-//    annotationProcessor("com.google.dagger:dagger-compiler:2.52")
     implementation("com.google.dagger:hilt-android:2.52")
     kapt("com.google.dagger:hilt-compiler:2.52")
 
@@ -105,7 +110,7 @@ dependencies {
 
     // Room database
     implementation("androidx.room:room-runtime:2.6.1")
-    annotationProcessor("androidx.room:room-compiler:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
 
     // Jetpack Compose

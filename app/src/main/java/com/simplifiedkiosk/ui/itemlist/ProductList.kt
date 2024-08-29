@@ -2,7 +2,6 @@ package com.simplifiedkiosk.ui.itemlist
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -21,18 +20,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.simplifiedkiosk.R
-import com.simplifiedkiosk.model.FakeProduct
+import com.simplifiedkiosk.model.Product
 
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ItemRow(
-    product: FakeProduct,
+    product: Product,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
@@ -56,7 +54,7 @@ fun ItemRow(
                 ) {
                     Text(
                         modifier = Modifier.fillMaxWidth(),
-                        text = product.title,
+                        text = product.title ?: "",
                         overflow = TextOverflow.Ellipsis,
                         maxLines = 1
                     )
@@ -68,7 +66,7 @@ fun ItemRow(
 
                 }
                 ThumbnailResourceDrawable(
-                    resourceId = R.drawable.shopping_cart_image_placeholder
+                    resourceId = R.drawable.product_image_placeholder_48x48
                 )
 
             }
@@ -97,12 +95,11 @@ fun ThumbnailResourceDrawable(
 @Preview
 @Composable
 fun ItemRowPreview() {
-    ItemRow(product = FakeProduct(
+    ItemRow(product = Product(
         productId = 1,
         title = "Product 1",
         description = "Description 1",
         price = "$10.00",
-        category = "Category 1",
         imageUrl = "https://via.placeholder.com/150"
     ),
         isSelected = false,
@@ -112,9 +109,9 @@ fun ItemRowPreview() {
 
 @Composable
 fun ItemList(
-    products: List<FakeProduct>,
-    selectedItem: FakeProduct?,
-    onSelectedItemChange: (FakeProduct) -> Unit) {
+    products: List<Product>,
+    selectedItem: Product?,
+    onSelectedItemChange: (Product) -> Unit) {
     LazyColumn {
         products.forEach { product ->
             item {
@@ -133,28 +130,25 @@ fun ItemList(
 fun ItemListPreview() {
     ItemList(
         products = listOf(
-            FakeProduct(
+            Product(
                 productId = 1,
                 title = "Product 1",
                 description = "Description 1",
                 price = "$10.00",
-                category = "Category 1",
                 imageUrl = "https://via.placeholder.com/150"
             ),
-            FakeProduct(
+            Product(
                 productId = 2,
                 title = "Product 2",
                 description = "Description 2",
                 price = "$20.00",
-                category = "Category 2",
                 imageUrl = "https://via.placeholder.com/150"
             ),
-            FakeProduct(
+            Product(
                 productId = 2,
                 title = "Product 3",
                 description = "Description 3",
                 price = "$20.00",
-                category = "Category 3",
                 imageUrl = "https://via.placeholder.com/150"
             )
         ),

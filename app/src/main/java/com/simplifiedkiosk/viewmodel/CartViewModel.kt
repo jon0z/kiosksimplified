@@ -43,21 +43,6 @@ class CartViewModel @Inject constructor(
         }
     }
 
-    fun addItemToCart(cartItem: CartItem) {
-        viewModelScope.launch {
-            cartRepository.addItemToCart(cartItem)
-            loadCartItems() // Reload items after adding to update the UI
-        }
-    }
-
-    fun clearCart() {
-        viewModelScope.launch {
-            cartRepository.clearCart()
-            _cartItems.value = emptyList()
-            _totalPrice.value = 0.0
-        }
-    }
-
 
     private val fusedLocationClient: FusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(application)

@@ -5,4 +5,13 @@ import java.io.Serializable
 data class FakeCartProduct(
     val productId: Int,
     var quantity: Int? = null
-): Serializable
+): Serializable {
+    fun toFakeProduct(): Product {
+        return Product(
+            productId = productId,
+            title = null,
+            price = null,
+            description = null,
+            quantity = quantity)
+    }
+}

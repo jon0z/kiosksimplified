@@ -7,17 +7,21 @@ import androidx.room.PrimaryKey
 data class CartItemEntity(
     @PrimaryKey (autoGenerate = true) val id: Long = 0,
     val itemId: String,
-    val name: String,
-    val description: String,
-    val price: Double,
-    val quantity: Int,
-    val imgUrl: String
-) {
-    // Convert to a CartItem model
-    fun toCartItem(): CartItem {
-        return CartItem(
-            item = Item(itemId, name, description, price, imgUrl),
-            quantity = quantity
+    val title: String?,
+    val price: String?,
+    val description: String?,
+    val imgUrl: String?,
+    val quantity: Int?,
+){
+    fun toProduct(): Product {
+        return Product(
+            productId = itemId.toInt(),
+            title = title,
+            price = price,
+            description = description,
+            imageUrl = imgUrl,
+            quantity = quantity,
+            dbId = id
         )
     }
 }
