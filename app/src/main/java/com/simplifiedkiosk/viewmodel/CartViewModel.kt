@@ -58,6 +58,30 @@ class CartViewModel @Inject constructor(
         return cartRepository.getCartTotalPrice()
     }
 
+    fun removeProductFromCart(cartProduct: Product) {
+        viewModelScope.launch {
+            cartRepository.removeProductFromCart(cartProduct).collectLatest { result ->
+                result.fold({ cartMap ->
+                    _cartState.value = CartState.SuccessRemovingProductFromCart(cartMap)
+                }, {
+                    _cartState.value = CartState.FailedRemovingProductFromCart(it)
+                })
+            }
+        }
+    }
+
+    fun addProductToCart(cartProduct: Product) {
+        viewModelScope.launch {
+            cartRepository.addProductToCart(cartProduct).collectLatest { result ->
+                result.fold({ cartMap ->
+                    _cartState.value = CartState.SuccessAddingProductToCart(cartMap)
+                }, {
+                    _cartState.value = CartState.FailedAddingProductToCart(it)
+                })
+            }
+        }
+    }
+
     private val fusedLocationClient: FusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(application)
 
@@ -71,27 +95,6 @@ class CartViewModel @Inject constructor(
             CancellationTokenSource().token
         ).addOnSuccessListener { location: Location? ->
             _location.value = location
-
-
-            val geocoder = Geocoder(application)
-            location?.let {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    geocoder.getFromLocation(it.latitude, it.longitude, 1){addresses ->
-                        val address = addresses.first()
-                        val city = address.locality
-                        val state = address.adminArea
-                        val zipcode = address.postalCode
-                    }
-                } else {
-                    val address = geocoder.getFromLocation(it.latitude, it.longitude, 1)?.first()
-                    address?.let {
-                        val city = address.locality
-                        val state = address.adminArea
-                        val zipcode = address.postalCode
-                    }
-
-                }
-            }
         }
     }
 }
@@ -100,4 +103,10 @@ sealed class CartState {
     object Loading : CartState()
     data class SuccessLoadingCartItems(val cartDetails: Map<String, String>) : CartState()
     data class FailedLoadingCartItems(val error: Throwable) : CartState()
+
+    data class SuccessRemovingProductFromCart(val cartDetails: Map<String, String>) : CartState()
+    data class FailedRemovingProductFromCart(val error: Throwable) : CartState()
+
+    data class SuccessAddingProductToCart(val cartDetails: Map<String, String>) : CartState()
+    data class FailedAddingProductToCart(val error: Throwable) : CartState()
 }

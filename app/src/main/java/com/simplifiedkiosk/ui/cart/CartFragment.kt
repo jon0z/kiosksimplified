@@ -21,9 +21,12 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.simplifiedkiosk.R
 import com.simplifiedkiosk.databinding.FragmentCartBinding
+import com.simplifiedkiosk.model.Product
+import com.simplifiedkiosk.utils.formatStringToCurrency
 import com.simplifiedkiosk.utils.showAlertDialog
 import com.simplifiedkiosk.viewmodel.CartState
 import com.simplifiedkiosk.viewmodel.CartViewModel
+import com.simplifiedkiosk.viewmodel.CheckoutState
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
@@ -41,6 +44,7 @@ class CartFragment : Fragment(), EasyPermissions.PermissionCallbacks {
     private val cartViewModel: CartViewModel by viewModels()
     private lateinit var viewBinding: FragmentCartBinding
     private var mCurrentAddress: Address? = null
+    private var mSubTotal: Double = 0.0
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -62,10 +66,7 @@ class CartFragment : Fragment(), EasyPermissions.PermissionCallbacks {
         }
 
         viewBinding.cartRecyclerView.layoutManager = LinearLayoutManager(requireContext())
-        val cartAdapter = CartAdapter(){
-            // ask user to update quantity
-            Log.e(TAG, "onViewCreated: got click in from cart adapter with productId ${it.productId}\n dbId ${it.dbId}")
-        }
+        val cartAdapter = CartAdapter(::removeProductFromCart, ::addProductToCart)
         viewBinding.cartRecyclerView.adapter = cartAdapter
 
 
@@ -81,7 +82,7 @@ class CartFragment : Fragment(), EasyPermissions.PermissionCallbacks {
                         CartState.Loading -> {}
                         is CartState.SuccessLoadingCartItems -> {
                             cartAdapter.submitList(cartViewModel.getCartProducts())
-                            val subtotal = cartViewModel.getCartTotalPrice()
+                            mSubTotal = cartViewModel.getCartTotalPrice()
                             updateCartCalculations(cartViewModel.getCartTotalPrice(), 0.08)
                             cartViewModel.location
                                 .filterNotNull()
@@ -89,7 +90,23 @@ class CartFragment : Fragment(), EasyPermissions.PermissionCallbacks {
                                     val geocoder = Geocoder(requireContext())
                                     geocoder.getFromLocation(it.latitude, it.longitude, 1)
                                 }.filterNotNull()
-                                .collectLatest { updateCartCalculations(subtotal, 0.08, it.first()) }
+                                .collectLatest { updateCartCalculations(mSubTotal, 0.08, it.first()) }
+                        }
+
+                        is CartState.FailedAddingProductToCart -> {
+                            showAlertDialog(requireContext(), title = "Error", message = "Failed to add product to cart with error: ${state.error.message}")
+                        }
+                        is CartState.FailedRemovingProductFromCart -> {
+                            showAlertDialog(requireContext(), title = "Error", message = "Failed to remove product from cart with error: ${state.error.message}")
+                        }
+                        is CartState.SuccessAddingProductToCart -> {
+                            // update cart adapter
+                            // update calculations
+                        }
+                        is CartState.SuccessRemovingProductFromCart -> {
+                            // update cart adapter
+                            // update calculations
+
                         }
                     }
                 }
@@ -98,12 +115,22 @@ class CartFragment : Fragment(), EasyPermissions.PermissionCallbacks {
 
         viewBinding.checkoutButton.setOnClickListener {
             if(cartViewModel.getCartSize() != 0){
-                findNavController().navigate(R.id.action_cartFragment_to_checkoutFragment)
+                val checkoutState = CheckoutState(
+                    cartSubTotal = mSubTotal,
+                    totalCartQuantity = cartViewModel.getCartSize(),
+                    cartProducts = cartViewModel.getCartProducts(),
+                    address = mCurrentAddress
+                )
+                findNavController().navigate(R.id.action_cartFragment_to_checkoutFragment, Bundle().apply{
+                    putParcelable("checkoutState", checkoutState)
+                })
             } else {
                 showAlertDialog(requireContext(), title = "Error", message = "Cart is empty")
             }
         }
     }
+
+
 
     private fun hasLocationPermission(): Boolean {
         return EasyPermissions.hasPermissions(
@@ -121,28 +148,36 @@ class CartFragment : Fragment(), EasyPermissions.PermissionCallbacks {
         )
     }
 
+    private fun removeProductFromCart(product: Product) {
+        cartViewModel.removeProductFromCart(product)
+    }
+
+    private fun addProductToCart(product: Product) {
+        cartViewModel.addProductToCart(product)
+    }
+
     private fun updateCartCalculations(subtotal: Double, tax: Double, address: Address? = null) {
         mCurrentAddress = address
 
-        val totalPriceFmt = NumberFormat.getCurrencyInstance().format(subtotal)
+        val totalPriceFmt = formatStringToCurrency(subtotal)
         viewBinding.cartCalculationsContainer.subtotalTextview.text = "$totalPriceFmt"
 
         val totalTax = subtotal * tax // 8% tax
-        val totalTaxFmt = NumberFormat.getCurrencyInstance().format(totalTax)
+        val totalTaxFmt = formatStringToCurrency(totalTax)
         viewBinding.cartCalculationsContainer.taxesTextview.text = "$totalTaxFmt"
 
         address?.let {
             val city = it.locality
             val state = it.adminArea
-            val zipcode = it.postalCode
-            viewBinding.locationTextView.text = "Location: $city, $state $zipcode"
+            viewBinding.cartCalculationsContainer.deliveryFeeLabel.textSize = 12f
+            viewBinding.cartCalculationsContainer.deliveryFeeLabel.text = "Ship to $city, $state:"
 
-            val deliveryFee = subtotal * 0.25
-            val deliveryFeeFmt = NumberFormat.getCurrencyInstance().format(deliveryFee)
+            val deliveryFee = subtotal * 0.25 // 25% of subtotal
+            val deliveryFeeFmt = formatStringToCurrency(deliveryFee)
             viewBinding.cartCalculationsContainer.deliveryFeeTextview.text = "$deliveryFeeFmt"
 
             val netTotal = subtotal.plus(tax).plus(deliveryFee)
-            val netTotalFmt = NumberFormat.getCurrencyInstance().format(netTotal)
+            val netTotalFmt = formatStringToCurrency(netTotal)
             viewBinding.cartCalculationsContainer.totalTextview.text = "$netTotalFmt"
         }
     }

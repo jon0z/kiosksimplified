@@ -1,5 +1,8 @@
 package com.simplifiedkiosk.viewmodel
 
+import android.location.Address
+import android.os.Parcel
+import android.os.Parcelable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.simplifiedkiosk.model.CartItem
@@ -10,6 +13,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.parcelize.Parcelize
+import java.io.Serializable
 import javax.inject.Inject
 
 @HiltViewModel
@@ -17,17 +22,11 @@ class CheckoutViewModel @Inject constructor(
     private val cartRepository: CartRepository
 ) : ViewModel() {
 
-    private val _cartItems = MutableStateFlow<List<CartItem>>(emptyList())
-    val cartItems: StateFlow<List<CartItem>> = _cartItems
-
-    private val _totalAmount = MutableStateFlow(0.0)
-    val totalAmount: StateFlow<Double> = _totalAmount
-
     private val _checkoutState = MutableStateFlow<CheckoutStateResults?>(null)
     val checkoutState: StateFlow<CheckoutStateResults?> = _checkoutState
 
     private val checkoutScreenState: CheckoutState = CheckoutState(
-        totalCartPrice = 0.0,
+        cartSubTotal = 0.0,
         totalCartQuantity = 0,
         cartProducts = emptyList()
     )
@@ -43,13 +42,26 @@ class CheckoutViewModel @Inject constructor(
         }
     }
 
+    fun loadCheckOutStateFromCart(state: CheckoutState) {
+        viewModelScope.launch {
+            _checkoutState.value = CheckoutStateResults.ReceivedProductsFromCartSummary(
+                checkoutScreenState.copy(
+                    cartSubTotal = state.cartSubTotal,
+                    totalCartQuantity = state.totalCartQuantity,
+                    cartProducts = state.cartProducts,
+                    address = state.address
+                )
+            )
+        }
+    }
+
     fun addCartProduct(cartProduct: Product) {
         viewModelScope.launch {
             cartRepository.addProductToCart(cartProduct).collectLatest { result ->
                 result.fold({ cartDetails ->
                     _checkoutState.value = CheckoutStateResults.LoadedCartItems(
                         checkoutScreenState.copy(
-                            totalCartPrice = cartDetails["totalCartPrice"]?.toDouble() ?: 0.00,
+                            cartSubTotal = cartDetails["totalCartPrice"]?.toDouble() ?: 0.00,
                             totalCartQuantity = cartDetails["totalCartQuantity"]?.toInt()  ?: 0,
                             cartProducts = cartRepository.getCartItems()
                         )
@@ -67,7 +79,7 @@ class CheckoutViewModel @Inject constructor(
                 result.fold({ cartDetails ->
                     _checkoutState.value = CheckoutStateResults.LoadedCartItems(
                         checkoutScreenState.copy(
-                            totalCartPrice = cartDetails["totalCartPrice"]?.toDouble() ?: 0.00,
+                            cartSubTotal = cartDetails["totalCartPrice"]?.toDouble() ?: 0.00,
                             totalCartQuantity = cartDetails["totalCartQuantity"]?.toInt()  ?: 0,
                             cartProducts = cartRepository.getCartItems()
                         )
@@ -79,6 +91,8 @@ class CheckoutViewModel @Inject constructor(
             }
         }
     }
+
+    fun getCartSize() = cartRepository.getCartTotalQuantity()
 }
 
 sealed class CheckoutStateResults {
@@ -86,10 +100,17 @@ sealed class CheckoutStateResults {
     data class LoadedCartItems(val checkoutState: CheckoutState): CheckoutStateResults()
     data class FailedLoadingCartItems(val error: Throwable): CheckoutStateResults()
 
+    data class ReceivedProductsFromCartSummary(val checkoutState: CheckoutState): CheckoutStateResults()
+
 }
 
+@Parcelize
 data class CheckoutState(
-    var totalCartPrice: Double = 0.0,
+    var cartSubTotal: Double = 0.0,
     var totalCartQuantity: Int = 0,
-    var cartProducts: List<Product> = emptyList()
-)
+    var cartProducts: List<Product> = emptyList(),
+    val shippingRate: Double = 0.15, // 15% shipping
+    val taxRate: Double = 0.08, // 8% tax default
+    var address: Address? = null,
+    var paymentMethod: String? = "googlePay",
+): Parcelable

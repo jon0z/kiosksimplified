@@ -66,7 +66,7 @@ fun ItemRow(
 
                 }
                 ThumbnailResourceDrawable(
-                    resourceId = R.drawable.product_image_placeholder_48x48
+                    resourceId = R.mipmap.product_image_placeholder_96x96
                 )
 
             }

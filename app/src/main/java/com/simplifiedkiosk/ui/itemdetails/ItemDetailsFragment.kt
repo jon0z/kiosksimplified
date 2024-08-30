@@ -62,7 +62,7 @@ class ItemDetailsFragment : Fragment() {
                             viewBinding.itemName.text = state.product.title
                             viewBinding.itemDescription.text = state.product.description
                             viewBinding.itemPrice.text = "$${state.product.price}"
-                            viewBinding.productImage.setImageResource(R.drawable.product_image_placeholder_144x144)
+                            viewBinding.productImage.setImageResource(R.mipmap.product_image_placeholder_144x144)
                         }
                         is ItemDetailsState.FailedLoadingProductDetails -> {
                             showAlertDialog(requireContext(), title = "Error", message = state.error.message.toString())

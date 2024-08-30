@@ -2,12 +2,12 @@ package com.simplifiedkiosk.ui.checkout
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -15,10 +15,12 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.simplifiedkiosk.R
 import com.simplifiedkiosk.databinding.FragmentCheckoutBinding
+import com.simplifiedkiosk.utils.formatAddressToStringAddressDetails
+import com.simplifiedkiosk.utils.formatStringToCurrency
 import com.simplifiedkiosk.utils.showAlertDialog
+import com.simplifiedkiosk.viewmodel.CheckoutState
 import com.simplifiedkiosk.viewmodel.CheckoutStateResults
 import com.simplifiedkiosk.viewmodel.CheckoutViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -26,6 +28,8 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
 
+
+private const val TAG = "CheckoutFragment"
 @AndroidEntryPoint
 class CheckoutFragment : Fragment() {
 
@@ -44,27 +48,14 @@ class CheckoutFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val toolBarTitle = (activity as AppCompatActivity).supportActionBar?.customView?.findViewById<TextView>(R.id.toolbar_title)
         toolBarTitle?.text = "Checkout"
-
-        viewBinding.checkoutRecyclerView.layoutManager = LinearLayoutManager(requireContext())
-        val checkoutAdapter = CheckoutAdapter()
-        viewBinding.checkoutRecyclerView.adapter = checkoutAdapter
-
-        // Observe the total amount and cart items
-        lifecycleScope.launch {
-            checkoutViewModel.totalAmount.collectLatest { totalAmount ->
-                viewBinding.totalAmountTextView.text = "Total: $$totalAmount"
+        arguments?.let {
+            it.getParcelable<CheckoutState>("checkoutState")?.let {
+                checkoutViewModel.loadCheckOutStateFromCart(it)
             }
         }
 
-//        lifecycleScope.launch {
-//            checkoutViewModel.cartItems.collectLatest { cartItems ->
-//                // Update RecyclerView adapter with cartItems (adapter logic to be implemented)
-//                checkoutAdapter.submitList(cartItems)
-//            }
-//        }
-
         viewBinding.proceedToPaymentButton.setOnClickListener {
-            if(!viewBinding.shippingAddressEditText.text.isNullOrBlank()){
+            if(checkoutViewModel.getCartSize() > 0) {
                 handlePaymentProcess()
             } else {
                 showAlertDialog(
@@ -84,7 +75,7 @@ class CheckoutFragment : Fragment() {
                             is CheckoutStateResults.FailedLoadingCartItems -> {}
                             is CheckoutStateResults.LoadedCartItems -> {
                                 val cartProduct = state.checkoutState.cartProducts
-                                val cartPrice = state.checkoutState.totalCartPrice
+                                val cartPrice = state.checkoutState.cartSubTotal
                                 val cartQuantity = state.checkoutState.totalCartQuantity
 
                                 // update recycler view with new cart products
@@ -94,8 +85,34 @@ class CheckoutFragment : Fragment() {
 
                             }
                             CheckoutStateResults.Loading -> {}
+                            is CheckoutStateResults.ReceivedProductsFromCartSummary -> {
+                                // update checkout charges summary
+                                viewBinding.cartCalculationsContainer.subtotalTextview.text = formatStringToCurrency(state.checkoutState.cartSubTotal)
+                                val taxes = state.checkoutState.cartSubTotal * state.checkoutState.taxRate
+                                viewBinding.cartCalculationsContainer.taxesTextview.text = formatStringToCurrency(taxes)
+                                val shippingCharges = state.checkoutState.cartSubTotal * state.checkoutState.shippingRate
+                                viewBinding.cartCalculationsContainer.deliveryFeeTextview.text = formatStringToCurrency(shippingCharges)
+                                val total = state.checkoutState.cartSubTotal.plus(taxes).plus(shippingCharges)
+                                viewBinding.cartCalculationsContainer.totalTextview.text = formatStringToCurrency(total)
+
+                                // update checkout address
+                                state.checkoutState.address?.let {
+                                    viewBinding.addressContainer.deliveryAddressDetails.text = formatAddressToStringAddressDetails(it)
+                                }
+                            }
                         }
                     }
+            }
+        }
+        
+        viewBinding.paymentsContainer.paymentMethodGroup.setOnCheckedChangeListener { radioGroup, checkedId ->
+            when(checkedId){
+                R.id.paymentCreditCard -> {
+                    Log.e(TAG, "onViewCreated: selected credit card" )
+                }
+                R.id.paymentGpay -> {
+                    Log.e(TAG, "onViewCreated: selected Google Pay", )
+                }
             }
         }
     }
@@ -108,7 +125,7 @@ class CheckoutFragment : Fragment() {
     }
 
     private fun handlePaymentProcess(){
-        val shippingAddress = viewBinding.shippingAddressEditText.text.toString()
+        val shippingAddress = ""
         val paymentSuccessful = checkoutViewModel.processPayment(shippingAddress)
         if (paymentSuccessful) {
             showAlertDialog(
@@ -119,9 +136,9 @@ class CheckoutFragment : Fragment() {
                 )
             // clear cart
             // clear totals
-            viewBinding.totalAmountTextView.text = ""
+//            viewBinding.totalAmountTextView.text = ""
             // clear address field
-            viewBinding.shippingAddressEditText.text.clear()
+//            viewBinding.shippingAddressEditText.text.clear()
             hideSoftKeyboard()
             // Navigate to a confirmation screen or back to the item list
             findNavController().navigate(R.id.action_checkoutFragment_to_itemListFragment)

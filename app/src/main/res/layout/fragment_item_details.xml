@@ -45,7 +45,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/product_image"
-                tools:src="@drawable/product_image_placeholder_144x144"
+                android:src="@mipmap/product_image_placeholder_144x144"
                 android:layout_marginTop="16dp"
                 android:layout_below="@id/itemDescription"/>
 

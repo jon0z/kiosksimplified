@@ -1,14 +1,11 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Base.Theme.SimplifiedKiosk" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Base.Theme.SimplifiedKiosk" parent="Theme.MaterialComponents.Light.NoActionBar">
         <!-- Customize your light theme here. -->
         <item name="colorPrimary">#007BFF</item>
         <item name="colorPrimaryDark">#0056B3</item>
         <item name="colorSecondary">#D6E9FF</item>
         <item name="colorAccent">#FF6F00</item>
-
-
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
     </style>
 
     <style name="Theme.SimplifiedKiosk" parent="Base.Theme.SimplifiedKiosk" />

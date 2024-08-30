@@ -36,6 +36,9 @@
         android:name="com.simplifiedkiosk.ui.cart.CartFragment"
         android:label="Cart"
         tools:layout="@layout/fragment_cart">
+        <argument
+            android:name="checkOutState"
+            app:argType="com.simplifiedkiosk.viewmodel.CheckoutState" />
         <action
             android:id="@+id/action_cartFragment_to_checkoutFragment"
             app:destination="@id/checkoutFragment" />
