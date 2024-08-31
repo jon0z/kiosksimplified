@@ -126,6 +126,9 @@ dependencies {
     // Images
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("io.coil-kt:coil-svg:2.7.0")
+
+    implementation("org.robolectric:robolectric:4.5.1")
+    implementation("com.google.truth:truth:1.4.4")
 }
 kapt{
     correctErrorTypes = true

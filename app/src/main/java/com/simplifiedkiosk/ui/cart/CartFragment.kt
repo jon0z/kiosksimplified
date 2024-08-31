@@ -43,6 +43,7 @@ class CartFragment : Fragment(), EasyPermissions.PermissionCallbacks {
 
     private val cartViewModel: CartViewModel by viewModels()
     private lateinit var viewBinding: FragmentCartBinding
+    private lateinit var mCartAdapter: CartAdapter
     private var mCurrentAddress: Address? = null
     private var mSubTotal: Double = 0.0
 
@@ -66,8 +67,8 @@ class CartFragment : Fragment(), EasyPermissions.PermissionCallbacks {
         }
 
         viewBinding.cartRecyclerView.layoutManager = LinearLayoutManager(requireContext())
-        val cartAdapter = CartAdapter(::removeProductFromCart, ::addProductToCart)
-        viewBinding.cartRecyclerView.adapter = cartAdapter
+        mCartAdapter = CartAdapter(::removeProductFromCart, ::addProductToCart)
+        viewBinding.cartRecyclerView.adapter = mCartAdapter
 
 
         viewLifecycleOwner.lifecycleScope.launch {
@@ -81,7 +82,7 @@ class CartFragment : Fragment(), EasyPermissions.PermissionCallbacks {
                         }
                         CartState.Loading -> {}
                         is CartState.SuccessLoadingCartItems -> {
-                            cartAdapter.submitList(cartViewModel.getCartProducts())
+                            mCartAdapter.submitList(cartViewModel.getCartProducts())
                             mSubTotal = cartViewModel.getCartTotalPrice()
                             updateCartCalculations(cartViewModel.getCartTotalPrice(), 0.08)
                             cartViewModel.location
@@ -100,12 +101,12 @@ class CartFragment : Fragment(), EasyPermissions.PermissionCallbacks {
                             showAlertDialog(requireContext(), title = "Error", message = "Failed to remove product from cart with error: ${state.error.message}")
                         }
                         is CartState.SuccessAddingProductToCart -> {
-                            // update cart adapter
                             // update calculations
+                            updateCartCalculations(cartViewModel.getCartTotalPrice(), 0.08, mCurrentAddress)
                         }
                         is CartState.SuccessRemovingProductFromCart -> {
-                            // update cart adapter
                             // update calculations
+                            updateCartCalculations(cartViewModel.getCartTotalPrice(), 0.08, mCurrentAddress)
 
                         }
                     }
@@ -126,6 +127,15 @@ class CartFragment : Fragment(), EasyPermissions.PermissionCallbacks {
                 })
             } else {
                 showAlertDialog(requireContext(), title = "Error", message = "Cart is empty")
+            }
+        }
+
+        viewBinding.cartDiscountContainer.applyDiscountButton.setOnClickListener {
+            if(viewBinding.cartDiscountContainer.discountCodeInput.text.isNullOrBlank()){
+                showAlertDialog(requireContext(), title = "Error", message = "Please enter a valid discount code")
+            } else {
+                // Apply 10% discount
+
             }
         }
     }
@@ -150,10 +160,14 @@ class CartFragment : Fragment(), EasyPermissions.PermissionCallbacks {
 
     private fun removeProductFromCart(product: Product) {
         cartViewModel.removeProductFromCart(product)
+        product.productId?.let {
+            mCartAdapter.removeItem(it.toString())
+        }
     }
 
     private fun addProductToCart(product: Product) {
         cartViewModel.addProductToCart(product)
+        mCartAdapter.updateCartItem(product)
     }
 
     private fun updateCartCalculations(subtotal: Double, tax: Double, address: Address? = null) {

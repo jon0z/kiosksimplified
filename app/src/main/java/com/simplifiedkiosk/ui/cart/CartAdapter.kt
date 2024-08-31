@@ -1,5 +1,6 @@
 package com.simplifiedkiosk.ui.cart
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.simplifiedkiosk.R
 import com.simplifiedkiosk.model.Product
 
+private const val TAG = "CartAdapter"
 class CartAdapter(private val onRemoveItemClick: (Product) -> Unit, private val onAddItemClick: (Product) -> Unit) : ListAdapter<Product, CartAdapter.CartViewHolder>(CartItemDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CartViewHolder {
@@ -65,14 +67,16 @@ class CartAdapter(private val onRemoveItemClick: (Product) -> Unit, private val 
         val existingItemPosition = currentList.indexOfFirst { it.productId == newProduct.productId }
         if (existingItemPosition != -1){
             val existingItem = getItem(existingItemPosition)
-            if(existingItem.quantity!! > 1){
-                existingItem.quantity = existingItem.quantity!! - 1
-                notifyItemChanged(existingItemPosition)
-            } else {
-                removeItemInternally(existingItemPosition)
+            existingItem.quantity?.let {
+                if(it >= 1){
+                    existingItem.quantity = it + 1 // Need to review this logic
+                    notifyItemChanged(existingItemPosition)
+                }
             }
         } else {
-            submitList(currentList + newProduct)
+            // if currentList is empty add product
+            val newList = currentList + newProduct
+            submitList(newList)
         }
     }
 
@@ -80,19 +84,24 @@ class CartAdapter(private val onRemoveItemClick: (Product) -> Unit, private val 
         if (productId.isNotBlank()){
             val existingItemPosition = currentList.indexOfFirst { it.productId == productId.toInt() }
             if (existingItemPosition != -1){
-                removeItemInternally(existingItemPosition)
+                val existingItem = getItem(existingItemPosition)
+                existingItem.quantity?.let {
+                    if (it > 1){
+                        existingItem.quantity = it - 1
+                        notifyItemChanged(existingItemPosition)
+                    } else{
+                        val newList = currentList.toMutableList()
+                        newList.removeAt(existingItemPosition)
+                        submitList(newList)
+                    }
+                }
             }
         }
     }
 
     private fun removeItemInternally(position: Int){
-        currentList.removeAt(position)
-        notifyItemRemoved(position)
-        if(currentList.isEmpty()){
-            submitList(emptyList())
-        } else {
-            notifyItemRangeChanged(position, currentList.size)
-        }
+        val updatedCurrentList = currentList.toMutableList().minus(getItem(position))
+        submitList(updatedCurrentList)
     }
 }
 

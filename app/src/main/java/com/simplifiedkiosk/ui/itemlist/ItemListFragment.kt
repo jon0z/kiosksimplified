@@ -60,6 +60,7 @@ class ItemListFragment : Fragment() {
                         is ProductStateResults.FetchProductsSuccess -> {
                             viewBinding.composeView.setViewTreeLifecycleOwner(viewLifecycleOwner)
                             viewBinding.composeView.setContent {
+
                                 ItemList(
                                     state.products,
                                     selectedItem = selectedProduct,
