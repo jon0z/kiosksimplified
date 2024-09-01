@@ -5,12 +5,13 @@ import androidx.room.Room
 import com.simplifiedkiosk.dao.CartDao
 import com.simplifiedkiosk.database.AppDatabase
 import com.simplifiedkiosk.model.Cart
-import com.simplifiedkiosk.network.CommerceJsApiClient
-import com.simplifiedkiosk.network.CommerceJsApiService
+import com.simplifiedkiosk.network.ReactProductsApiClient
+import com.simplifiedkiosk.network.ReacProductsApiService
 import com.simplifiedkiosk.network.FakeProductApiService
 import com.simplifiedkiosk.network.FakeProductsApiClient
 import com.simplifiedkiosk.repository.CartRepository
 import com.simplifiedkiosk.repository.ProductsRepository
+import com.simplifiedkiosk.repository.ReactProductsRepository
 import com.simplifiedkiosk.ui.itemlist.ItemAdapter
 import dagger.Module
 import dagger.Provides
@@ -38,8 +39,8 @@ object AppModule {
     }
 
     @Provides
-    fun provideCommerceJsApiService(): CommerceJsApiService {
-        return CommerceJsApiClient.apiService
+    fun provideCommerceJsApiService(): ReacProductsApiService {
+        return ReactProductsApiClient.apiService
     }
 
     @Provides
@@ -56,6 +57,11 @@ object AppModule {
     @Provides
     fun provideProductsRepository(productsApi: FakeProductApiService): ProductsRepository {
         return ProductsRepository(productsApi)
+    }
+
+    @Provides
+    fun provideReactProductsRepository(productsApiService: ReacProductsApiService): ReactProductsRepository {
+        return ReactProductsRepository(productsApiService)
     }
 
     @Provides

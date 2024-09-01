@@ -30,10 +30,14 @@ import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.simplifiedkiosk.model.Product
+import com.simplifiedkiosk.model.ReactProduct
 
 @Composable
 fun TopBar() {
@@ -67,7 +71,7 @@ fun TopBarPreview() {
 
 @Composable
 fun ProductListItem(
-    product: Product,
+    product: ReactProduct,
     onFavoriteClick: () -> Unit,
     onItemClick: () -> Unit
 ) {
@@ -84,14 +88,11 @@ fun ProductListItem(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            product.imageUrl?.let {
-                Image(
-                    painter = painterResource(id = it.toInt()),
-                    contentDescription = product.title,
-                    modifier = Modifier.size(64.dp)
-                )
-            }
-            
+            AsyncImage(model = ImageRequest.Builder(LocalContext.current)
+                .data(product.thumbnail)
+                .crossfade(true)
+                .build(), contentDescription = "thumbnail")
+
 
             Spacer(modifier = Modifier.width(16.dp))
 
@@ -119,19 +120,19 @@ fun ProductListItem(
 @Preview
 @Composable
 fun ProductListItemPreview() {
-    ProductListItem(product = Product(
+    ProductListItem(product = ReactProduct(
         productId = 1,
         title = "Product 1",
-        price = "10.0",
+        price = 10.0,
         description = "Description",
     ), onFavoriteClick = {}, onItemClick = {})
 }
 
 @Composable
 fun ProductList(
-    products: List<Product>,
-    onFavoriteClick: (Product) -> Unit,
-    onItemClick: (Product) -> Unit
+    products: List<ReactProduct>,
+    onFavoriteClick: (ReactProduct) -> Unit,
+    onItemClick: (ReactProduct) -> Unit
 ) {
     LazyColumn {
         products.forEach {product ->
@@ -151,16 +152,16 @@ fun ProductList(
 @Composable
 fun ProductListPreview() {
     ProductList(products = listOf(
-        Product(
+        ReactProduct(
             productId = 1,
             title = "Product 1",
-            price = "10.0",
+            price = 10.0,
             description = "Description",
         ),
-        Product(
+        ReactProduct(
             productId = 2,
             title = "Product 2",
-            price = "20.0",
+            price = 20.0,
             description = "Description",
         )
     ), onFavoriteClick = {}, onItemClick = {})
@@ -200,9 +201,9 @@ fun BottomNavigationBarPreview() {
 
 @Composable
 fun ProductScreen(
-    products: List<Product>,
-    onFavoriteClick: (Product) -> Unit,
-    onItemClick: (Product) -> Unit
+    products: List<ReactProduct>,
+    onFavoriteClick: (ReactProduct) -> Unit,
+    onItemClick: (ReactProduct) -> Unit
 ) {
     Scaffold(
         topBar = { TopBar() },
@@ -221,11 +222,11 @@ fun ProductScreen(
 @Composable
 fun ProductScreenPreview() {
     val products = listOf(
-        Product(1, "iPhone X mobile", "1000.0", ),
-        Product(2, "Wireless Earphones", "350.0"),
-        Product(3, "iwatch series 5", "550.0"),
-        Product(4, "Laptop Cover", "150.0"),
-        Product(5, "Mobile Cover", "50.0")
+        ReactProduct(1, "iPhone X mobile", 1000.00, description = "Description" ),
+        ReactProduct(2, "Wireless Earphones", 350.00, description = "Description"),
+        ReactProduct(3, "iwatch series 5", 550.00, description = "Description"),
+        ReactProduct(4, "Laptop Cover", 150.00, description = "Description"),
+        ReactProduct(5, "Mobile Cover", 50.00, description = "Description")
     )
 
     ProductScreen(

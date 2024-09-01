@@ -7,11 +7,15 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.simplifiedkiosk.model.CartItemEntity
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface CartDao {
     @Query("SELECT * FROM cart_items")
     suspend fun getAllCartItems(): List<CartItemEntity>
+
+    @Query("SELECT * FROM cart_items")
+    fun getAllCartItemsFlow(): Flow<List<CartItemEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCartItem(cartItem: CartItemEntity): Long // returns rowId for newly inserted item

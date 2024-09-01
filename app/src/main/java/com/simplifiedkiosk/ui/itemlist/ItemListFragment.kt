@@ -3,8 +3,12 @@ package com.simplifiedkiosk.ui.itemlist
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.SearchView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.runtime.getValue
@@ -27,16 +31,18 @@ import com.simplifiedkiosk.viewmodel.ProductStateResults
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import androidx.core.view.MenuProvider
+import com.simplifiedkiosk.model.ReactProduct
 
 
 private const val TAG = "ItemListFragment"
 @AndroidEntryPoint
-class ItemListFragment : Fragment() {
+class ItemListFragment : Fragment(), MenuProvider {
 
     private val productsListViewModel: ProductListViewModel by viewModels()
     private lateinit var viewBinding: FragmentItemListBinding
 
-    private var selectedProduct by mutableStateOf<Product?>(null)
+    private var mSelectedProduct by mutableStateOf<ReactProduct?>(null)
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -49,27 +55,16 @@ class ItemListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        requireActivity().addMenuProvider(this, viewLifecycleOwner, Lifecycle.State.RESUMED)
         val toolBarTitle = (activity as AppCompatActivity).supportActionBar?.customView?.findViewById<TextView>(R.id.toolbar_title)
         toolBarTitle?.text = "Products"
 
-        productsListViewModel.loadCartItems()
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED){
                 productsListViewModel.productsState.collectLatest { state ->
                     when (state) {
                         is ProductStateResults.FetchProductsSuccess -> {
-                            viewBinding.composeView.setViewTreeLifecycleOwner(viewLifecycleOwner)
-                            viewBinding.composeView.setContent {
 
-                                ItemList(
-                                    state.products,
-                                    selectedItem = selectedProduct,
-                                    onSelectedItemChange = {
-                                        selectedProduct = it
-                                        findNavController().navigate(R.id.action_itemListFragment_to_itemDetailsFragment, bundleOf("productId" to it.productId))
-                                    }
-                                )
-                            }
                         }
                         is ProductStateResults.FetchProductsError -> {
                             Log.e(TAG, "failed to fetch products")
@@ -79,11 +74,51 @@ class ItemListFragment : Fragment() {
                         }
 
                         is ProductStateResults.FailedLoadingCartProducts -> {
-                            Log.e(TAG, "failed to load cart products")
+                            Log.e(TAG, "failed to load cart products ${state.error}")
                         }
                         is ProductStateResults.SuccessLoadingCartProducts -> {
                             val quantity = state.cartDetails["totalCartQuantity"]
                             viewBinding.viewCartButton.text = "View Cart ($quantity)"
+                        }
+
+                        is ProductStateResults.FailedLoadingReactProducts -> {
+                            Log.e(TAG, "failed to load react products ${state.error}")
+                        }
+                        is ProductStateResults.SuccessLoadingReactProducts -> {
+                            val products = state.list
+                            viewBinding.composeView.setViewTreeLifecycleOwner(viewLifecycleOwner)
+                            viewBinding.composeView.setContent {
+                                ProductList(
+                                    products = products,
+                                    onFavoriteClick = {},
+                                    onItemClick = {
+                                        itemClicked(it)
+                                    }
+                                )
+                            }
+                            products.forEach {
+                                Log.e(TAG, "${it.title} - ${it.price} - ${it.images} - ${it.thumbnail}")
+                            }
+                        }
+
+                        is ProductStateResults.FailedProductSearch -> {
+                            // search failed or returned no results. Display error and clear call to action
+                            // to search again or fetch products from server
+                            if(viewBinding.composeView.visibility == View.VISIBLE) {
+                                viewBinding.composeView.visibility = View.GONE
+                                viewBinding.viewCartButton.visibility = View.GONE
+                                viewBinding.searchView.visibility = View.GONE
+                                viewBinding.noSearchResultsView.visibility = View.VISIBLE
+                            }
+                        }
+                        is ProductStateResults.SuccessfulProductSearch -> {
+                            viewBinding.composeView.setViewTreeLifecycleOwner(viewLifecycleOwner)
+                            viewBinding.composeView.setContent {
+                                ProductList(
+                                    products = state.list,
+                                    onFavoriteClick = {} ,
+                                    onItemClick = {})
+                            }
                         }
                     }
                 }
@@ -97,30 +132,59 @@ class ItemListFragment : Fragment() {
                 showAlertDialog(requireContext(), "Cart is empty", "Please add items to continue")
             }
         }
+
+        viewBinding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener{
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                query?.let {
+                    productsListViewModel.searchForProducts(query = it)
+                }
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                if (newText.isNullOrBlank()){
+                    viewBinding.searchView.visibility = View.GONE
+                    productsListViewModel.fetchReactProducts()
+
+                }
+                return true
+            }
+        })
+
+        viewBinding.reloadButton.setOnClickListener {
+            productsListViewModel.fetchReactProducts()
+        }
     }
 
-    override fun onStart() {
-        super.onStart()
-        Log.e(TAG, "onStart: called", )
+    private fun itemClicked(product: ReactProduct) {
+        mSelectedProduct = product
+        findNavController().navigate(R.id.action_itemListFragment_to_itemDetailsFragment, bundleOf("productId" to product.productId))
+    }
+
+    override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+        menuInflater.inflate(R.menu.menu_item_list, menu)
+    }
+
+    override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+        return when (menuItem.itemId) {
+            R.id.action_favorites -> {
+                true
+            }
+            R.id.action_search -> {
+                if(viewBinding.searchView.visibility != View.VISIBLE){
+                    viewBinding.searchView.visibility = View.VISIBLE
+                } else {
+                    viewBinding.searchView.visibility = View.GONE
+                }
+                true
+            }
+            else -> false
+        }
     }
 
     override fun onResume() {
         super.onResume()
-        Log.e(TAG, "onResume: called", )
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        Log.e(TAG, "onCreate: called", )
-    }
-
-    override fun onPause() {
-        super.onPause()
-        Log.e(TAG, "onPause: called", )
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        Log.e(TAG, "onDestroy: called", )
+        productsListViewModel.fetchProducts()
+        productsListViewModel.fetchReactProducts()
     }
 }

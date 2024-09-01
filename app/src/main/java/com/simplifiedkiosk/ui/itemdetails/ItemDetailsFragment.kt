@@ -5,6 +5,8 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -13,12 +15,14 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.simplifiedkiosk.R
 import com.simplifiedkiosk.databinding.FragmentItemDetailsBinding
-import com.simplifiedkiosk.model.Product
+import com.simplifiedkiosk.model.ReactProduct
 import com.simplifiedkiosk.utils.showAlertDialog
 import com.simplifiedkiosk.viewmodel.ItemDetailsState
 import com.simplifiedkiosk.viewmodel.ItemDetailsViewModel
+import com.squareup.picasso.Picasso
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -31,7 +35,7 @@ class ItemDetailsFragment : Fragment() {
     private lateinit var viewBinding: FragmentItemDetailsBinding
     private val itemDetailsViewModel: ItemDetailsViewModel by viewModels()
 
-    private lateinit var currentProduct: Product
+    private lateinit var currentProduct: ReactProduct
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -49,7 +53,7 @@ class ItemDetailsFragment : Fragment() {
         itemDetailsViewModel.loadCartItems()
         // Get the item ID from the arguments
         val productId = arguments?.getInt("productId") ?: return
-        itemDetailsViewModel.loadProductDetails(productId.toString())
+        itemDetailsViewModel.loadProductDetails(productId)
 
         // Load item details
         viewLifecycleOwner.lifecycleScope.launch {
@@ -57,39 +61,18 @@ class ItemDetailsFragment : Fragment() {
                 itemDetailsViewModel.itemDetailsState
                     .collectLatest { state ->
                     when (state) {
-                        is ItemDetailsState.SuccessLoadingProductDetails -> {
-                            currentProduct = state.product
-                            viewBinding.itemName.text = state.product.title
-                            viewBinding.itemDescription.text = state.product.description
-                            viewBinding.itemPrice.text = "$${state.product.price}"
-                            viewBinding.productImage.setImageResource(R.mipmap.product_image_placeholder_144x144)
-                        }
-                        is ItemDetailsState.FailedLoadingProductDetails -> {
-                            showAlertDialog(requireContext(), title = "Error", message = state.error.message.toString())
-                        }
-                        ItemDetailsState.Loading -> { Log.e(TAG, "Loading") }
+                        ItemDetailsState.Loading -> { Log.e(TAG, "Loading...") }
                         is ItemDetailsState.FailedAddingProductToCart -> {
                             showAlertDialog(requireContext(), "Error", state.error.message.toString())
                         }
                         is ItemDetailsState.SuccessAddingProductToCart -> {
+                            viewBinding.addToCartButton.isEnabled = true
                             val totalCartQuantity = state.cartDetails["totalCartQuantity"]
                             viewBinding.cartItemCountTextView.text = "Items in Cart: $totalCartQuantity"
                             val totalCartPrice = state.cartDetails["totalCartPrice"]
                             viewBinding.cartTotalPriceTextView.text = "Cart Total (pre-tax): $$totalCartPrice"
                             viewBinding.viewCartButton.text = "View Cart($totalCartQuantity)"
                         }
-
-                        is ItemDetailsState.FailedRemovingProductFromCart -> {
-                            showAlertDialog(requireContext(), "Error", state.error.message.toString())
-                        }
-                        is ItemDetailsState.SuccessRemovingProductFromCart -> {
-                            val totalCartQuantity = state.cartDetails["totalCartQuantity"]
-                            viewBinding.cartItemCountTextView.text = "Items in Cart: $totalCartQuantity"
-                            val totalCartPrice = state.cartDetails["totalCartPrice"]
-                            viewBinding.cartTotalPriceTextView.text = "Cart Total (Pre-tax): $$totalCartPrice"
-                            viewBinding.viewCartButton.text = if(totalCartQuantity == "0") "View Cart" else "View Cart($totalCartQuantity)"
-                        }
-
                         ItemDetailsState.FailedLoadingCartItems -> {}
                         is ItemDetailsState.SuccessLoadingCartItems -> {
                             val totalCartQuantity = state.cartDetails["totalCartQuantity"]
@@ -97,6 +80,25 @@ class ItemDetailsFragment : Fragment() {
                             val totalCartPrice = state.cartDetails["totalCartPrice"]
                             viewBinding.cartTotalPriceTextView.text = "Cart Total (Pre-tax): $$totalCartPrice"
                             viewBinding.viewCartButton.text = if(totalCartQuantity == "0") "View Cart" else "View Cart($totalCartQuantity)"
+                        }
+
+                        is ItemDetailsState.FailedLoadingReactProductDetails -> {
+                            showAlertDialog(requireContext(), "Error", state.error.message.toString())
+                        }
+                        is ItemDetailsState.SuccessLoadingReactProductDetails -> {
+                            currentProduct = state.product
+                            viewBinding.itemName.text = state.product.title
+                            viewBinding.itemDescription.text = state.product.description
+                            viewBinding.itemPrice.text = "$${state.product.price}"
+
+                            val images = state.product.images
+                            if(!images.isNullOrEmpty()){
+                                images.forEach {
+                                    val image = ImageView(requireActivity())
+                                    Picasso.get().load(it).into(image)
+                                    viewBinding.imageListContainer.addView(image)
+                                }
+                            }
                         }
                     }
                 }
@@ -113,15 +115,7 @@ class ItemDetailsFragment : Fragment() {
 
         viewBinding.addToCartButton.setOnClickListener {
             itemDetailsViewModel.addToCart(currentProduct)
+            viewBinding.addToCartButton.isEnabled = false
         }
-
-//        viewBinding.removeFromCartButton.setOnClickListener {
-//            // check if any cart items of this type are selected
-//            if(itemDetailsViewModel.getCartSize() != 0) {
-//                itemDetailsViewModel.removeFromCart(currentProduct)
-//            } else {
-//                showAlertDialog(requireContext(), "Cart is empty", "No products to remove")
-//            }
-//        }
     }
 }

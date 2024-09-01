@@ -5,19 +5,21 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.simplifiedkiosk.R
-import com.simplifiedkiosk.model.Product
+import com.simplifiedkiosk.model.ReactProduct
+import com.squareup.picasso.Picasso
 
 private const val TAG = "CartAdapter"
-class CartAdapter(private val onRemoveItemClick: (Product) -> Unit, private val onAddItemClick: (Product) -> Unit) : ListAdapter<Product, CartAdapter.CartViewHolder>(CartItemDiffCallback()) {
+class CartAdapter(private val onRemoveItemClick: (ReactProduct) -> Unit, private val onAddItemClick: (ReactProduct) -> Unit) : ListAdapter<ReactProduct, CartAdapter.CartViewHolder>(CartItemDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CartViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.cart_product_row_layout, parent, false)
-        return CartViewHolder(view, onRemoveItemClick, onAddItemClick, this)
+        return CartViewHolder(view, onRemoveItemClick, onAddItemClick)
     }
 
     override fun onBindViewHolder(holder: CartViewHolder, position: Int) {
@@ -25,10 +27,10 @@ class CartAdapter(private val onRemoveItemClick: (Product) -> Unit, private val 
         holder.bind(cartItem)
     }
 
-    class CartViewHolder(itemView: View,
-                         private val onRemoveItemClick: (Product) -> Unit,
-                         private val onAddItemClick: (Product) -> Unit,
-                         private val cartAdapter: CartAdapter,
+    class CartViewHolder(
+        itemView: View,
+        private val onRemoveItemClick: (ReactProduct) -> Unit,
+        private val onAddItemClick: (ReactProduct) -> Unit,
     ) : RecyclerView.ViewHolder(itemView) {
         private val itemNameTextView: TextView = itemView.findViewById(R.id.cart_item_name_textview)
         private val itemQuantityTextView: TextView = itemView.findViewById(R.id.cart_item_quantity)
@@ -36,11 +38,20 @@ class CartAdapter(private val onRemoveItemClick: (Product) -> Unit, private val 
         private val itemDescriptionTextView: TextView = itemView.findViewById(R.id.cartItemDescriptionTextView)
         private val itemRemoveButton: ImageButton = itemView.findViewById(R.id.decrease_quantity_btn)
         private val itemAddButton: ImageButton = itemView.findViewById(R.id.increase_quantity_btn)
+        private val itemImage: ImageView = itemView.findViewById(R.id.productImage)
 
-        fun bind(cartProduct: Product) {
+        fun bind(cartProduct: ReactProduct) {
             itemNameTextView.text = cartProduct.title
             itemDescriptionTextView.text = cartProduct.description
             itemQuantityTextView.text = "Qty: ${cartProduct.quantity}"
+            if(cartProduct.thumbnail != null){
+                Log.e(TAG, "bind: thumbnail is not null")
+                Picasso.get().load(cartProduct.thumbnail).into(itemImage)
+            } else {
+                Log.e(TAG, "bind: thumbnail is null")
+                itemImage.setImageResource(R.mipmap.product_image_placeholder_48x48)
+            }
+
             if(cartProduct.price != null && cartProduct.quantity != null){
                 cartProduct.quantity?.let {
                     val totalPrice = cartProduct.price.toDouble() * it
@@ -50,26 +61,22 @@ class CartAdapter(private val onRemoveItemClick: (Product) -> Unit, private val 
                 itemPriceTextView.text = "$0.00"
             }
             itemRemoveButton.setOnClickListener {
-                cartProduct.productId?.let {
-                    cartAdapter.removeItem(it.toString())
-                }
                 onRemoveItemClick.invoke(cartProduct)
             }
 
             itemAddButton.setOnClickListener {
-                cartAdapter.updateCartItem(cartProduct)
                 onAddItemClick.invoke(cartProduct)
             }
         }
     }
 
-    fun updateCartItem(newProduct: Product){
+    fun updateCartItem(newProduct: ReactProduct){
         val existingItemPosition = currentList.indexOfFirst { it.productId == newProduct.productId }
         if (existingItemPosition != -1){
             val existingItem = getItem(existingItemPosition)
             existingItem.quantity?.let {
                 if(it >= 1){
-                    existingItem.quantity = it + 1 // Need to review this logic
+                    existingItem.quantity = it + 1
                     notifyItemChanged(existingItemPosition)
                 }
             }
@@ -81,36 +88,36 @@ class CartAdapter(private val onRemoveItemClick: (Product) -> Unit, private val 
     }
 
     fun removeItem(productId: String){
-        if (productId.isNotBlank()){
+        if (!productId.isNullOrBlank()){
             val existingItemPosition = currentList.indexOfFirst { it.productId == productId.toInt() }
             if (existingItemPosition != -1){
-                val existingItem = getItem(existingItemPosition)
-                existingItem.quantity?.let {
-                    if (it > 1){
-                        existingItem.quantity = it - 1
-                        notifyItemChanged(existingItemPosition)
-                    } else{
-                        val newList = currentList.toMutableList()
-                        newList.removeAt(existingItemPosition)
-                        submitList(newList)
+                val existingItem = currentList.getOrNull(existingItemPosition)
+                if(existingItem != null){
+                    existingItem.quantity?.let {
+                        if(it > 1){
+                            val updatedItem = existingItem.copy(quantity = it - 1)
+                            val newList = currentList.toSet().minus(existingItem).plus(updatedItem).toList()
+                            submitList(newList)
+                        } else {
+                            val newList = currentList.toSet().minus(existingItem).toList()
+                            submitList(newList)
+                        }
+
                     }
                 }
+            } else {
+                Log.d(TAG, "removeItem: item not found... returned index $existingItemPosition")
             }
         }
     }
-
-    private fun removeItemInternally(position: Int){
-        val updatedCurrentList = currentList.toMutableList().minus(getItem(position))
-        submitList(updatedCurrentList)
-    }
 }
 
-class CartItemDiffCallback : DiffUtil.ItemCallback<Product>() {
-    override fun areItemsTheSame(oldItem: Product, newItem: Product): Boolean {
+class CartItemDiffCallback : DiffUtil.ItemCallback<ReactProduct>() {
+    override fun areItemsTheSame(oldItem: ReactProduct, newItem: ReactProduct): Boolean {
         return oldItem.dbId == newItem.dbId
     }
 
-    override fun areContentsTheSame(oldItem: Product, newItem: Product): Boolean {
+    override fun areContentsTheSame(oldItem: ReactProduct, newItem: ReactProduct): Boolean {
         return oldItem == newItem
     }
 }

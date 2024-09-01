@@ -24,4 +24,16 @@ data class CartItemEntity(
             dbId = id
         )
     }
+
+    fun toReactProduct(): ReactProduct {
+        return ReactProduct(
+            productId = itemId.toInt(),
+            title = title,
+            price = price?.toDouble(),
+            description = description,
+            quantity = quantity,
+            dbId = id,
+            thumbnail = imgUrl
+        )
+    }
 }

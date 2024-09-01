@@ -4,7 +4,6 @@ import android.Manifest
 import android.location.Address
 import android.location.Geocoder
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,15 +12,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.liveData
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.simplifiedkiosk.R
 import com.simplifiedkiosk.databinding.FragmentCartBinding
-import com.simplifiedkiosk.model.Product
+import com.simplifiedkiosk.model.ReactProduct
 import com.simplifiedkiosk.utils.formatStringToCurrency
 import com.simplifiedkiosk.utils.showAlertDialog
 import com.simplifiedkiosk.viewmodel.CartState
@@ -33,8 +30,6 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import pub.devrel.easypermissions.EasyPermissions
-import java.text.NumberFormat
-import javax.inject.Inject
 
 
 private const val TAG = "CartFragment"
@@ -158,14 +153,14 @@ class CartFragment : Fragment(), EasyPermissions.PermissionCallbacks {
         )
     }
 
-    private fun removeProductFromCart(product: Product) {
+    private fun removeProductFromCart(product: ReactProduct) {
         cartViewModel.removeProductFromCart(product)
         product.productId?.let {
             mCartAdapter.removeItem(it.toString())
         }
     }
 
-    private fun addProductToCart(product: Product) {
+    private fun addProductToCart(product: ReactProduct) {
         cartViewModel.addProductToCart(product)
         mCartAdapter.updateCartItem(product)
     }

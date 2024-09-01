@@ -12,5 +12,4 @@ android:layout_height="match_parent">
     android:textSize="18sp"
     android:textStyle="bold"
     android:layout_gravity="center"/>
-
 </LinearLayout>

@@ -1,15 +1,12 @@
 package com.simplifiedkiosk.repository
 
-import android.util.Log
-import com.simplifiedkiosk.model.FakeCart
 import com.simplifiedkiosk.model.Product
 import com.simplifiedkiosk.network.FakeProductApiService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.retry
+import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
-
 
 private const val TAG = "ProductsRepository"
 class ProductsRepository @Inject constructor(
@@ -35,35 +32,6 @@ class ProductsRepository @Inject constructor(
             } ?: emit(Result.failure(Throwable("No product found")))
         } else {
             emit(Result.failure(Throwable("Failed to fetch product")))
-        }
-    }.retry (2)
-        .catch { emit(Result.failure(it)) }
-
-    fun addProductToCart(userId: String,
-                         date: String,
-                         products: List<Product>
-    ): Flow<Result<FakeCart>> = flow {
-        val response = apiService.addToCart(userId, date, products)
-        if (response.isSuccessful) {
-            response.body()?.let { cart ->
-                Log.e(TAG, "success cart created: $cart")
-                emit(Result.success(cart))
-            } ?: emit(Result.failure(Throwable("No cart found")))
-        } else {
-            Log.e(TAG, "Failed to create cart")
-            emit(Result.failure(Throwable("Failed to add to cart")))
-        }
-    }.retry(2)
-        .catch { emit(Result.failure(it)) }
-
-    fun getCartByUserId(userId: String): Flow<Result<List<FakeCart>>> = flow {
-        val response = apiService.fetchCartByUserId(userId)
-        if (response.isSuccessful) {
-            response.body()?.let { carts ->
-                emit(Result.success(carts))
-            } ?: emit(Result.failure(Throwable("No carts found for user $userId")))
-        } else {
-            emit(Result.failure(Throwable("Failed to fetch carts")))
         }
     }.retry (2)
         .catch { emit(Result.failure(it)) }

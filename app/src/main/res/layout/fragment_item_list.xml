@@ -8,6 +8,35 @@
     android:orientation="vertical"
     tools:context=".ui.itemlist.ItemListFragment">
 
+    <SearchView
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:id="@+id/searchView"
+        android:layout_marginBottom="16dp"
+        android:padding="8dp"
+        android:visibility="gone"/>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:id="@+id/no_search_results_view"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/no_search_results_text"
+            android:text="No search results found."
+            android:layout_centerInParent="true" />
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/reload_button"
+            android:text="Reload Items"
+            android:layout_below="@+id/no_search_results_text"/>
+    </RelativeLayout>
+
     <androidx.compose.ui.platform.ComposeView
         android:id="@+id/composeView"
         android:layout_width="match_parent"

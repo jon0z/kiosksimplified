@@ -1,12 +1,11 @@
 package com.simplifiedkiosk.viewmodel
 
 import android.location.Address
-import android.os.Parcel
 import android.os.Parcelable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.simplifiedkiosk.model.CartItem
 import com.simplifiedkiosk.model.Product
+import com.simplifiedkiosk.model.ReactProduct
 import com.simplifiedkiosk.repository.CartRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +13,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
-import java.io.Serializable
 import javax.inject.Inject
 
 @HiltViewModel
@@ -55,7 +53,7 @@ class CheckoutViewModel @Inject constructor(
         }
     }
 
-    fun addCartProduct(cartProduct: Product) {
+    fun addCartProduct(cartProduct: ReactProduct) {
         viewModelScope.launch {
             cartRepository.addProductToCart(cartProduct).collectLatest { result ->
                 result.fold({ cartDetails ->
@@ -73,7 +71,7 @@ class CheckoutViewModel @Inject constructor(
         }
     }
 
-    fun removeCartProduct(cartProduct: Product) {
+    fun removeCartProduct(cartProduct: ReactProduct) {
         viewModelScope.launch {
             cartRepository.removeProductFromCart(cartProduct).collectLatest {result ->
                 result.fold({ cartDetails ->
@@ -108,7 +106,7 @@ sealed class CheckoutStateResults {
 data class CheckoutState(
     var cartSubTotal: Double = 0.0,
     var totalCartQuantity: Int = 0,
-    var cartProducts: List<Product> = emptyList(),
+    var cartProducts: List<ReactProduct> = emptyList(),
     val shippingRate: Double = 0.15, // 15% shipping
     val taxRate: Double = 0.08, // 8% tax default
     var address: Address? = null,

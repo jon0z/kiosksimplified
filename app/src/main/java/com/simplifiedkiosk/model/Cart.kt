@@ -1,7 +1,8 @@
 package com.simplifiedkiosk.model
 
-import android.util.Log
 import com.simplifiedkiosk.dao.CartDao
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 
@@ -9,26 +10,32 @@ private const val TAG = "Cart"
 class Cart @Inject constructor(
     private val cartDao: CartDao
 ) {
-    private var products = mutableListOf<Product>()
+    private val products = mutableListOf<ReactProduct>()
 
     suspend fun loadItemsFromDb(): Result<Map<String, String>> {
         var result: Result<Map<String, String>> = Result.failure(Throwable("Failed to add to cart"))
-        val productsDb = cartDao.getAllCartItems().map { it.toProduct() }
-        if(productsDb.isNotEmpty()){
-            products.clear()
-            products.addAll(productsDb)
 
-            val cartMap = mutableMapOf<String, String>()
-            cartMap["totalCartQuantity"] = getTotalQuantity().toString()
-            cartMap["totalCartPrice"] = getTotalPrice().toString()
-            result = Result.success(cartMap.toMap())
+        if (products.isEmpty()){
+            // load from db and send
+            val productsDb = cartDao.getAllCartItems().map { it.toReactProduct() }
+            if(productsDb.isNotEmpty()){
+                products.addAll(productsDb)
+                result = updateCartMap()
+            }
+        } else {
+            // send current loaded products
+            result = updateCartMap()
         }
         return result
     }
 
-    suspend fun addProduct(product: Product): Result<Map<String, String>> {
+    fun loadCartProducts(): Flow<List<Product>> = cartDao.getAllCartItemsFlow().map {
+        it.map { it.toProduct() }
+    }
+
+    suspend fun addProduct(product: ReactProduct): Result<Map<String, String>> {
         val productWithDbId = if(product.dbId == null){
-            product.toCartItem().toProduct()
+            product.toCartItem().toReactProduct()
         } else product
 
         val isIteminDb = cartDao.cartProductWithItemIdExists(productWithDbId.productId.toString())
@@ -57,8 +64,8 @@ class Cart @Inject constructor(
         }
     }
 
-    suspend fun removeProduct(product: Product): Result<Map<String, String>> {
-        val productWithDbId = if (product.dbId == null) product.toCartItem().toProduct() else product
+    suspend fun removeProduct(product: ReactProduct): Result<Map<String, String>> {
+        val productWithDbId: ReactProduct = if (product.dbId == null) product.toCartItem().toReactProduct() else product
         val isItemInDb = cartDao.cartProductWithItemIdExists(productWithDbId.productId.toString())
 
         if (isItemInDb) {
@@ -74,10 +81,10 @@ class Cart @Inject constructor(
                 }
             }
             return if(rowModified != 0){
-                products.remove(product)
+                products.remove(productWithDbId)
                 updateCartMap()
             } else {
-                Result.failure(Throwable("Failed to remove product from cart"))
+                Result.failure(Throwable("Failed to internally remove product from cart"))
             }
         } else {
             return if(getTotalQuantity() > 0) {
@@ -89,7 +96,7 @@ class Cart @Inject constructor(
     }
 
     // Get the list of items in the cart
-    fun getProducts(): List<Product> {
+    fun getProducts(): List<ReactProduct> {
         return products
     }
 
@@ -97,11 +104,10 @@ class Cart @Inject constructor(
     fun getTotalPrice(): Double {
         var totalPrice = 0.0
         products.forEach {
-            val price = it.price?.toDouble() ?: 0.0
+            val price = it.price ?: 0.0
             val quantity = it.quantity ?: 0
             totalPrice += price * quantity
         }
-
         return totalPrice
     }
 
@@ -123,6 +129,7 @@ class Cart @Inject constructor(
         val cartMap = mutableMapOf<String, String>()
         cartMap["totalCartQuantity"] = getTotalQuantity().toString()
         cartMap["totalCartPrice"] = getTotalPrice().toString()
+        cartMap["totalCartIte"]
         return Result.success(cartMap.toMap())
 
     }

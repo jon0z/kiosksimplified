@@ -3,13 +3,13 @@ package com.simplifiedkiosk.ui.cart
 import com.google.common.truth.Truth.assertThat
 import com.simplifiedkiosk.model.Product
 import io.mockk.verify
+import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.LooperMode
 
 @RunWith(RobolectricTestRunner::class)
 class CartAdapterTest {
@@ -27,7 +27,7 @@ class CartAdapterTest {
         val productId = 1
         val existingItem = Product(productId, "Existing Item", quantity = 2)
         val newProduct = Product(productId, "Existing Item", quantity = 1)
-        val adapter = CartAdapter({}, {})
+        val adapter = CartAdapter({}) {}
         adapter.submitList(listOf(existingItem))
 
         adapter.updateCartItem(newProduct)
@@ -41,7 +41,7 @@ class CartAdapterTest {
         val productId = 1
         val existingItem = Product(productId, "Existing Item", quantity = 1)
         val newProduct = Product(productId, "Existing Item", quantity = 1)
-        val adapter = CartAdapter({}, {})
+        val adapter = CartAdapter({}) {}
         adapter.submitList(listOf(existingItem))
 
         adapter.updateCartItem(newProduct)
@@ -54,7 +54,7 @@ class CartAdapterTest {
     fun `test adding new item to list`() {
         val productId = 1
         val newProduct = Product(productId, "New Item", quantity = 1)
-        val adapter = CartAdapter({}, {})
+        val adapter = CartAdapter({}) {}
 
         adapter.updateCartItem(newProduct)
 
@@ -68,7 +68,7 @@ class CartAdapterTest {
         val existingItem = Product(productId, "Existing Item", quantity = null)
         val newProduct = Product(productId, "Existing Item", quantity = 1)
         val currentList = mutableListOf(existingItem)
-        val adapter = CartAdapter({}, {})
+        val adapter = CartAdapter({}) {}
         adapter.submitList(currentList)
 
         adapter.updateCartItem(newProduct)
@@ -77,18 +77,17 @@ class CartAdapterTest {
         assertEquals(existingItem, adapter.currentList[0])
     }
 
-    @LooperMode(LooperMode.Mode.PAUSED)
     @Test
-    fun `test remove existing item with valid ProductId and quantity 1 is successful`() {
+    fun `test remove existing item with valid ProductId and quantity 1 is successful`() = runTest {
         // Arrange
-        val cartAdapter = CartAdapter({}, {})
-        val productList = listOf(
+        val cartAdapter = CartAdapter({}) {}
+        cartAdapter.submitList(listOf(
             Product(
                 productId = 1,
                 title = "Product 1",
                 quantity = 1)
-        )
-        cartAdapter.submitList(productList)
+        ))
+
         // Act
         cartAdapter.removeItem("1")
 

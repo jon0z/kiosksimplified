@@ -41,13 +41,19 @@
                 android:textSize="16sp"
                 android:layout_below="@+id/itemPrice"/>
 
-            <ImageView
+            <HorizontalScrollView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/product_image"
-                android:src="@mipmap/product_image_placeholder_144x144"
-                android:layout_marginTop="16dp"
-                android:layout_below="@id/itemDescription"/>
+                android:layout_height="200dp"
+                android:id="@+id/image_carousel"
+                android:layout_below="@+id/itemDescription">
+
+                <androidx.appcompat.widget.LinearLayoutCompat
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:id="@+id/image_list_container"/>
+            </HorizontalScrollView>
+
 
             <Button
                 android:id="@+id/addToCartButton"
@@ -58,7 +64,7 @@
                 android:textAllCaps="false"
                 android:textSize="14sp"
                 android:layout_marginTop="16dp"
-                android:layout_below="@id/product_image"
+                android:layout_below="@id/image_carousel"
                 android:layout_centerHorizontal="true"/>
 
             <androidx.appcompat.widget.LinearLayoutCompat
