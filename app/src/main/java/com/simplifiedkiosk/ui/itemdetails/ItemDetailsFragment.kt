@@ -6,7 +6,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -15,10 +14,10 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.simplifiedkiosk.R
 import com.simplifiedkiosk.databinding.FragmentItemDetailsBinding
 import com.simplifiedkiosk.model.ReactProduct
+import com.simplifiedkiosk.utils.formatDoubleToCurrencyString
 import com.simplifiedkiosk.utils.showAlertDialog
 import com.simplifiedkiosk.viewmodel.ItemDetailsState
 import com.simplifiedkiosk.viewmodel.ItemDetailsViewModel
@@ -61,11 +60,19 @@ class ItemDetailsFragment : Fragment() {
                 itemDetailsViewModel.itemDetailsState
                     .collectLatest { state ->
                     when (state) {
-                        ItemDetailsState.Loading -> { Log.e(TAG, "Loading...") }
+                        ItemDetailsState.Loading -> {  }
                         is ItemDetailsState.FailedAddingProductToCart -> {
-                            showAlertDialog(requireContext(), "Error", state.error.message.toString())
+                            viewBinding.addToCartButton.isEnabled = true
+                            state.error.message?.let {
+                                showAlertDialog(
+                                    context = requireContext(),
+                                    title = "Error",
+                                    message = it
+                                )
+                            }
                         }
                         is ItemDetailsState.SuccessAddingProductToCart -> {
+                            Log.e(TAG, "*** SuccessAddingProductToCart" )
                             viewBinding.addToCartButton.isEnabled = true
                             val totalCartQuantity = state.cartDetails["totalCartQuantity"]
                             viewBinding.cartItemCountTextView.text = "Items in Cart: $totalCartQuantity"
@@ -73,7 +80,14 @@ class ItemDetailsFragment : Fragment() {
                             viewBinding.cartTotalPriceTextView.text = "Cart Total (pre-tax): $$totalCartPrice"
                             viewBinding.viewCartButton.text = "View Cart($totalCartQuantity)"
                         }
-                        ItemDetailsState.FailedLoadingCartItems -> {}
+                        is ItemDetailsState.FailedLoadingCartItems -> {
+                            state.error.message?.let {
+                                showAlertDialog(
+                                    context = requireContext(),
+                                    title = "Error",
+                                    message = it)
+                            }
+                        }
                         is ItemDetailsState.SuccessLoadingCartItems -> {
                             val totalCartQuantity = state.cartDetails["totalCartQuantity"]
                             viewBinding.cartItemCountTextView.text = "Items in Cart: $totalCartQuantity"
@@ -83,14 +97,20 @@ class ItemDetailsFragment : Fragment() {
                         }
 
                         is ItemDetailsState.FailedLoadingReactProductDetails -> {
-                            showAlertDialog(requireContext(), "Error", state.error.message.toString())
+                            state.error.message?.let {
+                                showAlertDialog(
+                                    context = requireContext(),
+                                    title = "Error",
+                                    message = it)
+                            }
                         }
                         is ItemDetailsState.SuccessLoadingReactProductDetails -> {
                             currentProduct = state.product
                             viewBinding.itemName.text = state.product.title
                             viewBinding.itemDescription.text = state.product.description
-                            viewBinding.itemPrice.text = "$${state.product.price}"
-
+                            state.product.price?.let {
+                                viewBinding.itemPrice.text = formatDoubleToCurrencyString(it)
+                            }
                             val images = state.product.images
                             if(!images.isNullOrEmpty()){
                                 images.forEach {
@@ -114,8 +134,10 @@ class ItemDetailsFragment : Fragment() {
         }
 
         viewBinding.addToCartButton.setOnClickListener {
-            itemDetailsViewModel.addToCart(currentProduct)
+            Log.e(TAG, "*** clicked addToCartButton" )
             viewBinding.addToCartButton.isEnabled = false
+            itemDetailsViewModel.addToCart(currentProduct)
+            Log.e(TAG, "*** called addToCart from viewmodel" )
         }
     }
 }

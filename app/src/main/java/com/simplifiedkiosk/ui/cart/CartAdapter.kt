@@ -88,7 +88,7 @@ class CartAdapter(private val onRemoveItemClick: (ReactProduct) -> Unit, private
     }
 
     fun removeItem(productId: String){
-        if (!productId.isNullOrBlank()){
+        if (productId.isNotBlank()){
             val existingItemPosition = currentList.indexOfFirst { it.productId == productId.toInt() }
             if (existingItemPosition != -1){
                 val existingItem = currentList.getOrNull(existingItemPosition)
@@ -114,7 +114,7 @@ class CartAdapter(private val onRemoveItemClick: (ReactProduct) -> Unit, private
 
 class CartItemDiffCallback : DiffUtil.ItemCallback<ReactProduct>() {
     override fun areItemsTheSame(oldItem: ReactProduct, newItem: ReactProduct): Boolean {
-        return oldItem.dbId == newItem.dbId
+        return oldItem.quantity == newItem.quantity
     }
 
     override fun areContentsTheSame(oldItem: ReactProduct, newItem: ReactProduct): Boolean {

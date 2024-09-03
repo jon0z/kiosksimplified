@@ -18,7 +18,7 @@ import androidx.navigation.fragment.findNavController
 import com.simplifiedkiosk.R
 import com.simplifiedkiosk.databinding.FragmentCheckoutBinding
 import com.simplifiedkiosk.utils.formatAddressToStringAddressDetails
-import com.simplifiedkiosk.utils.formatStringToCurrency
+import com.simplifiedkiosk.utils.formatDoubleToCurrencyString
 import com.simplifiedkiosk.utils.showAlertDialog
 import com.simplifiedkiosk.viewmodel.CheckoutState
 import com.simplifiedkiosk.viewmodel.CheckoutStateResults
@@ -87,13 +87,13 @@ class CheckoutFragment : Fragment() {
                             CheckoutStateResults.Loading -> {}
                             is CheckoutStateResults.ReceivedProductsFromCartSummary -> {
                                 // update checkout charges summary
-                                viewBinding.cartCalculationsContainer.subtotalTextview.text = formatStringToCurrency(state.checkoutState.cartSubTotal)
+                                viewBinding.cartCalculationsContainer.subtotalTextview.text = formatDoubleToCurrencyString(state.checkoutState.cartSubTotal)
                                 val taxes = state.checkoutState.cartSubTotal * state.checkoutState.taxRate
-                                viewBinding.cartCalculationsContainer.taxesTextview.text = formatStringToCurrency(taxes)
+                                viewBinding.cartCalculationsContainer.taxesTextview.text = formatDoubleToCurrencyString(taxes)
                                 val shippingCharges = state.checkoutState.cartSubTotal * state.checkoutState.shippingRate
-                                viewBinding.cartCalculationsContainer.deliveryFeeTextview.text = formatStringToCurrency(shippingCharges)
+                                viewBinding.cartCalculationsContainer.deliveryFeeTextview.text = formatDoubleToCurrencyString(shippingCharges)
                                 val total = state.checkoutState.cartSubTotal.plus(taxes).plus(shippingCharges)
-                                viewBinding.cartCalculationsContainer.totalTextview.text = formatStringToCurrency(total)
+                                viewBinding.cartCalculationsContainer.totalTextview.text = formatDoubleToCurrencyString(total)
 
                                 // update checkout address
                                 state.checkoutState.address?.let {

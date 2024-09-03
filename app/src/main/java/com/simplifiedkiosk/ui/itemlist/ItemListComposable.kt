@@ -1,6 +1,6 @@
 package com.simplifiedkiosk.ui.itemlist
 
-import androidx.compose.foundation.Image
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.BottomNavigation
@@ -20,7 +19,10 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
@@ -28,15 +30,16 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.simplifiedkiosk.model.Product
 import com.simplifiedkiosk.model.ReactProduct
 
 @Composable
@@ -48,7 +51,7 @@ fun TopBar() {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Back")
+        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
 
         Text(
             text = "TRENDING PRODUCTS",
@@ -75,6 +78,7 @@ fun ProductListItem(
     onFavoriteClick: () -> Unit,
     onItemClick: () -> Unit
 ) {
+    val isFavorite by remember { mutableStateOf(product.isFavorite) }
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -107,11 +111,17 @@ fun ProductListItem(
                 )
             }
 
-            IconButton(onClick = onFavoriteClick) {
-                Icon(
-                    imageVector = Icons.Default.FavoriteBorder,
-                    contentDescription = "Favorite"
-                )
+            IconButton(onClick = {
+                onFavoriteClick()
+            }) {
+                Log.e("ProductListItem", "*** clicked capture in Icon composable isFavorite = $isFavorite", )
+                isFavorite?.let {
+                    Icon(
+                        imageVector = if(it) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        contentDescription = "Favorite"
+                    )
+                }
+
             }
         }
     }
@@ -176,7 +186,7 @@ fun BottomNavigationBar() {
             onClick = { /* Handle navigation */ }
         )
         BottomNavigationItem(
-            icon = { Icon(imageVector = Icons.Default.List, contentDescription = "Categories") },
+            icon = { Icon(imageVector = Icons.AutoMirrored.Filled.List, contentDescription = "Categories") },
             selected = false,
             onClick = { /* Handle navigation */ }
         )
@@ -222,7 +232,7 @@ fun ProductScreen(
 @Composable
 fun ProductScreenPreview() {
     val products = listOf(
-        ReactProduct(1, "iPhone X mobile", 1000.00, description = "Description" ),
+        ReactProduct(1, "iPhone X mobile", 1000.00, description = "Description"),
         ReactProduct(2, "Wireless Earphones", 350.00, description = "Description"),
         ReactProduct(3, "iwatch series 5", 550.00, description = "Description"),
         ReactProduct(4, "Laptop Cover", 150.00, description = "Description"),

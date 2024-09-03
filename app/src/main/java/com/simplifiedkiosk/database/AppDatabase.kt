@@ -4,12 +4,18 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import com.simplifiedkiosk.dao.CartDao
+import com.simplifiedkiosk.dao.FavoritesDao
 import com.simplifiedkiosk.model.CartItemEntity
+import com.simplifiedkiosk.model.FavoriteEntity
+import com.simplifiedkiosk.model.ReactProduct
 
-@Database(entities = [CartItemEntity::class], version = 2)
+@Database(entities = [CartItemEntity::class, FavoriteEntity::class], version = 1, exportSchema = false)
+@TypeConverters(ImagesTypeConverted::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun cartDao(): CartDao
+    abstract fun favoritesDao(): FavoritesDao
 
     companion object {
         fun create(context: Context): AppDatabase {

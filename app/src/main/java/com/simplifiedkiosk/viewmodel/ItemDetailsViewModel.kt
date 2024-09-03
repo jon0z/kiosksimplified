@@ -1,5 +1,6 @@
 package com.simplifiedkiosk.viewmodel
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.simplifiedkiosk.model.ReactProduct
@@ -35,11 +36,14 @@ class ItemDetailsViewModel @Inject constructor(
     }
 
     fun addToCart(product: ReactProduct) {
+        Log.e("ItemDetailsViewModel", "*** inside addToCart" )
         viewModelScope.launch {
             cartRepository.addProductToCart(product = product).collectLatest { result ->
                 result.fold({ cartMap ->
+                    Log.e("ItemDetailsViewModel", "*** addToCart: success" )
                     _itemDetailsState.value = ItemDetailsState.SuccessAddingProductToCart(cartMap)
                 }, {
+                    Log.e("ItemDetailsViewModel", "*** addToCart: failed with error ${it.message}" )
                     _itemDetailsState.value = ItemDetailsState.FailedAddingProductToCart(it)
                 })
             }
@@ -54,7 +58,7 @@ class ItemDetailsViewModel @Inject constructor(
                 result.fold({
                     _itemDetailsState.value = ItemDetailsState.SuccessLoadingCartItems(it)
                 }, {
-                    _itemDetailsState.value = ItemDetailsState.FailedLoadingCartItems
+                    _itemDetailsState.value = ItemDetailsState.FailedLoadingCartItems(it)
                 })
             }
         }
@@ -68,5 +72,5 @@ sealed class ItemDetailsState {
     data class SuccessLoadingCartItems(val cartDetails: Map<String, String>): ItemDetailsState()
     data class SuccessLoadingReactProductDetails(val product: ReactProduct): ItemDetailsState()
     data class FailedLoadingReactProductDetails(val error: Throwable): ItemDetailsState()
-    object FailedLoadingCartItems: ItemDetailsState()
+    data class FailedLoadingCartItems(val error: Throwable): ItemDetailsState()
 }

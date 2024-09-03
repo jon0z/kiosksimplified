@@ -3,6 +3,7 @@ package com.simplifiedkiosk.di
 import android.content.Context
 import androidx.room.Room
 import com.simplifiedkiosk.dao.CartDao
+import com.simplifiedkiosk.dao.FavoritesDao
 import com.simplifiedkiosk.database.AppDatabase
 import com.simplifiedkiosk.model.Cart
 import com.simplifiedkiosk.network.ReactProductsApiClient
@@ -10,6 +11,7 @@ import com.simplifiedkiosk.network.ReacProductsApiService
 import com.simplifiedkiosk.network.FakeProductApiService
 import com.simplifiedkiosk.network.FakeProductsApiClient
 import com.simplifiedkiosk.repository.CartRepository
+import com.simplifiedkiosk.repository.FavoritesRepository
 import com.simplifiedkiosk.repository.ProductsRepository
 import com.simplifiedkiosk.repository.ReactProductsRepository
 import com.simplifiedkiosk.ui.itemlist.ItemAdapter
@@ -39,6 +41,11 @@ object AppModule {
     }
 
     @Provides
+    @Singleton
+    fun provideFavoritesDao(appDatabase: AppDatabase): FavoritesDao {
+        return appDatabase.favoritesDao()
+    }
+    @Provides
     fun provideCommerceJsApiService(): ReacProductsApiService {
         return ReactProductsApiClient.apiService
     }
@@ -62,6 +69,11 @@ object AppModule {
     @Provides
     fun provideReactProductsRepository(productsApiService: ReacProductsApiService): ReactProductsRepository {
         return ReactProductsRepository(productsApiService)
+    }
+
+    @Provides
+    fun provideFavoritesRepository(favoritesDao: FavoritesDao): FavoritesRepository{
+        return FavoritesRepository(favoritesDao)
     }
 
     @Provides

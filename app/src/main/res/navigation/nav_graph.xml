@@ -15,6 +15,9 @@
         <action
             android:id="@+id/action_itemListFragment_to_cartFragment"
             app:destination="@id/cartFragment"/>
+        <action
+            android:id="@+id/action_itemListFragment_to_favoritesFragment"
+            app:destination="@+id/favoritesFragment"/>
     </fragment>
 
     <fragment
@@ -52,5 +55,20 @@
         <action
             android:id="@+id/action_checkoutFragment_to_itemListFragment"
             app:destination="@id/itemListFragment"/>
+    </fragment>
+
+    <fragment
+        android:id="@+id/favoritesFragment"
+        android:name="com.simplifiedkiosk.ui.favorites.FavoritesFragment"
+        android:label="Favorites"
+        tools:layout="@layout/fragment_favorites">
+        <action
+            android:id="@+id/action_favoritesFragment_to_itemListFragment"
+            app:destination="@+id/itemListFragment"/>
+
+        <action
+            android:id="@+id/action_favoritesFragment_to_itemDetailsFragment"
+            app:destination="@+id/itemDetailsFragment"/>
+
     </fragment>
 </navigation>

@@ -1,7 +1,5 @@
 package com.simplifiedkiosk.model
 
-import androidx.room.Entity
-import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
 import java.io.Serializable
 
@@ -17,7 +15,6 @@ data class Product(
 
     fun toCartItem(): CartItemEntity {
         return CartItemEntity(
-            id = dbId ?: 0,
             itemId = productId.toString(),
             title = title,
             price = price,

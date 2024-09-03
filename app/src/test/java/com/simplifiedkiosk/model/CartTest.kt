@@ -19,10 +19,10 @@ class CartTest {
 
     private lateinit var cart: Cart
     private lateinit var cartDao: CartDao
-    private var productMock: Product = Product(
+    private var productMock: ReactProduct = ReactProduct(
         productId = 123,
         title = "Product 1",
-        price = "10.0",
+        price = 10.00,
         description = "some description for product 1",
         quantity = 0,
     )
@@ -59,7 +59,6 @@ class CartTest {
     fun `test add product success when product is in db`() = runTest {
         mockkObject(productMock)
         every { productMock.quantity } returns 1
-        every { productMock.dbId } returns 1
         coEvery { cartDao.getCartProductByItemId(any()) } returns listOf(productMock.toCartItem())
         coEvery { cartDao.cartProductWithItemIdExists(any()) } returns true
         coEvery { cartDao.updateCartItem(any()) } returns 1

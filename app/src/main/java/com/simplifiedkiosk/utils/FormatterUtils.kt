@@ -4,7 +4,7 @@ import android.location.Address
 import java.text.NumberFormat
 import java.util.Locale
 
-fun formatStringToCurrency(value: Double): String {
+fun formatDoubleToCurrencyString(value: Double): String {
     return NumberFormat.getCurrencyInstance(Locale.getDefault()).format(value)
 }
 
