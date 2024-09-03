@@ -24,7 +24,19 @@
                 tools:text="Item Name"
                 android:textSize="24sp"
                 android:textStyle="bold"
-                android:layout_alignParentTop="true"/>
+                android:layout_alignParentTop="true"
+                android:maxLines="1"
+                android:ellipsize="end"
+                android:layout_marginTop="24dp"/>
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/favorites_icon"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentTop="true"
+                android:src="@drawable/baseline_favorite_border_24"
+                android:padding="8dp"
+                android:layout_marginStart="8dp"/>
             <TextView
                 android:id="@+id/itemPrice"
                 android:layout_width="wrap_content"
@@ -81,7 +93,8 @@
                     android:text="Items in Cart: 0"
                     android:textStyle="bold"
                     android:paddingTop="8dp"
-                    android:textSize="16sp" />
+                    android:textSize="16sp"
+                    android:visibility="gone"/>
                 <TextView
                     android:id="@+id/cart_total_price_text_view"
                     android:layout_width="wrap_content"
@@ -89,7 +102,8 @@
                     android:text="Cart Total (Pre-tax): $0.00"
                     android:textStyle="bold"
                     android:paddingTop="8dp"
-                    android:textSize="16sp" />
+                    android:textSize="16sp"
+                    android:visibility="gone"/>
 
                 <Button
                     android:id="@+id/viewCartButton"

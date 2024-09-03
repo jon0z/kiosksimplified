@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -72,7 +73,6 @@ class ItemDetailsFragment : Fragment() {
                             }
                         }
                         is ItemDetailsState.SuccessAddingProductToCart -> {
-                            Log.e(TAG, "*** SuccessAddingProductToCart" )
                             viewBinding.addToCartButton.isEnabled = true
                             val totalCartQuantity = state.cartDetails["totalCartQuantity"]
                             viewBinding.cartItemCountTextView.text = "Items in Cart: $totalCartQuantity"
@@ -80,14 +80,7 @@ class ItemDetailsFragment : Fragment() {
                             viewBinding.cartTotalPriceTextView.text = "Cart Total (pre-tax): $$totalCartPrice"
                             viewBinding.viewCartButton.text = "View Cart($totalCartQuantity)"
                         }
-                        is ItemDetailsState.FailedLoadingCartItems -> {
-                            state.error.message?.let {
-                                showAlertDialog(
-                                    context = requireContext(),
-                                    title = "Error",
-                                    message = it)
-                            }
-                        }
+                        is ItemDetailsState.FailedLoadingCartItems -> {}
                         is ItemDetailsState.SuccessLoadingCartItems -> {
                             val totalCartQuantity = state.cartDetails["totalCartQuantity"]
                             viewBinding.cartItemCountTextView.text = "Items in Cart: $totalCartQuantity"
@@ -120,6 +113,38 @@ class ItemDetailsFragment : Fragment() {
                                 }
                             }
                         }
+
+                        is ItemDetailsState.FailedAddingProductToFavorites -> {
+                            showAlertDialog(
+                                context = requireActivity(),
+                                title = "Error",
+                                message = "Failed to add product to favorites. Reason: ${state.error.message}"
+                            )
+                        }
+                        is ItemDetailsState.SuccessAddingProductToFavorites -> {
+                            viewBinding.favoritesIcon.setImageResource(R.drawable.favorite_24_black)
+                            Toast
+                                .makeText(requireActivity(),
+                                "Product added to favorites",
+                                Toast.LENGTH_SHORT)
+                                .show()
+                        }
+
+                        is ItemDetailsState.FailedRemovingProductFromFavorites -> {
+                            showAlertDialog(
+                                context = requireActivity(),
+                                title = "Error",
+                                message = "Failed to remove product from favorites. Reason: ${state.error.message}"
+                            )
+                        }
+                        is ItemDetailsState.SuccessRemovingProductFromFavorites -> {
+                            viewBinding.favoritesIcon.setImageResource(R.drawable.baseline_favorite_border_24)
+                            Toast
+                                .makeText(requireActivity(),
+                                    "Product removed from favorites",
+                                    Toast.LENGTH_SHORT)
+                                .show()
+                        }
                     }
                 }
             }
@@ -130,6 +155,18 @@ class ItemDetailsFragment : Fragment() {
                 findNavController().navigate(R.id.action_itemDetailsFragment_to_cartFragment)
             } else {
                 showAlertDialog(requireContext(), "Cart is empty", "Please add items to continue")
+            }
+        }
+
+        viewBinding.favoritesIcon.setOnClickListener {
+            currentProduct.isFavorite?.let {
+                if(it){
+                    currentProduct.isFavorite = false
+                    itemDetailsViewModel.removeFromFavorites(currentProduct)
+                } else {
+                    currentProduct.isFavorite = true
+                    itemDetailsViewModel.addToFavorites(currentProduct)
+                }
             }
         }
 

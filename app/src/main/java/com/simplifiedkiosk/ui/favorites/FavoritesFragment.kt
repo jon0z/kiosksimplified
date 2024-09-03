@@ -50,7 +50,11 @@ class FavoritesFragment: Fragment(), MenuProvider {
                             showAlertDialog(
                                 context = requireActivity(),
                                 title = "Error",
-                                message = "Failed to fetch favorites. With reason:${state.error.message}")
+                                message = "${state.error.message}",
+                                positiveButtonText = "Back to products",
+                                onPositiveClick = {
+                                    findNavController().navigate(R.id.action_favoritesFragment_to_itemListFragment)
+                                })
                         }
                         is FavoritesStateResults.FetchFavoritesSuccess -> {
                             val products = state.favorites
@@ -69,8 +73,10 @@ class FavoritesFragment: Fragment(), MenuProvider {
                                                           }
                                                       }
                                     },
-                                    onItemClick = {
-                                        findNavController().navigate(R.id.action_favoritesFragment_to_itemDetailsFragment, bundleOf("productId" to it.productId))
+                                    onItemClick = { selectedProduct ->
+                                        selectedProduct.productId?.let {
+                                            findNavController().navigate(R.id.action_favoritesFragment_to_itemDetailsFragment, bundleOf("productId" to it))
+                                        }
                                     } )
                             }
                         }
@@ -79,16 +85,17 @@ class FavoritesFragment: Fragment(), MenuProvider {
                             showAlertDialog(
                                 context = requireActivity(),
                                 title = "Error",
-                                message = "Failed to add product to favorites. With reason:${state.error.message}")
+                                message = "Failed to add product to favorites. \n${state.error.message}")
                         }
                         is FavoritesStateResults.AddProductToFavoritesSuccess -> {}
                         is FavoritesStateResults.RemoveProductFromFavoritesFailed -> {
                             showAlertDialog(
                                 context = requireActivity(),
                                 title = "Error",
-                                message = "Failed to remove product from favorites. With reason:${state.error.message}")
+                                message = "Failed to remove product from favorites. \n${state.error.message}")
                         }
-                        is FavoritesStateResults.RemoveProductFromFavoritesSuccess -> {}
+                        is FavoritesStateResults.RemoveProductFromFavoritesSuccess -> {
+                        }
                         is FavoritesStateResults.FailedDeleteAllFavorites -> {
                             showAlertDialog(
                                 context = requireActivity(),

@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.simplifiedkiosk.model.ReactProduct
 import com.simplifiedkiosk.repository.CartRepository
+import com.simplifiedkiosk.repository.FavoritesRepository
 import com.simplifiedkiosk.repository.ReactProductsRepository
 
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,7 +18,8 @@ import kotlinx.coroutines.flow.collectLatest
 @HiltViewModel
 class ItemDetailsViewModel @Inject constructor(
     private val cartRepository: CartRepository,
-    private val reactProductsRepository: ReactProductsRepository
+    private val reactProductsRepository: ReactProductsRepository,
+    private val favoritesRepository: FavoritesRepository
 ) : ViewModel() {
 
     private var _itemDetailsState = MutableStateFlow<ItemDetailsState>(ItemDetailsState.Loading)
@@ -63,6 +65,40 @@ class ItemDetailsViewModel @Inject constructor(
             }
         }
     }
+
+    fun addToFavorites(product: ReactProduct) {
+        viewModelScope.launch {
+            favoritesRepository.addOrUpdateFavorite(product)
+                .collectLatest { result ->
+                    result.fold({ id ->
+                        if (id != 1L) {
+                            _itemDetailsState.value =
+                                ItemDetailsState.SuccessAddingProductToFavorites(true)
+                        }
+                    }, {
+                        _itemDetailsState.value =
+                            ItemDetailsState.FailedAddingProductToFavorites(it)
+                    })
+                }
+        }
+    }
+
+    fun removeFromFavorites(product: ReactProduct) {
+        viewModelScope.launch {
+            favoritesRepository.removeFavorite(product)
+                .collectLatest { result ->
+                    result.fold({ rowsAffected ->
+                        if (rowsAffected > 0) {
+                            _itemDetailsState.value =
+                                ItemDetailsState.SuccessRemovingProductFromFavorites(true)
+                        }
+                    }, {
+                        _itemDetailsState.value =
+                            ItemDetailsState.FailedRemovingProductFromFavorites(it)
+                    })
+                }
+        }
+    }
 }
 
 sealed class ItemDetailsState {
@@ -73,4 +109,8 @@ sealed class ItemDetailsState {
     data class SuccessLoadingReactProductDetails(val product: ReactProduct): ItemDetailsState()
     data class FailedLoadingReactProductDetails(val error: Throwable): ItemDetailsState()
     data class FailedLoadingCartItems(val error: Throwable): ItemDetailsState()
+    data class SuccessAddingProductToFavorites(val success: Boolean): ItemDetailsState()
+    data class FailedAddingProductToFavorites(val error: Throwable): ItemDetailsState()
+    data class SuccessRemovingProductFromFavorites(val success: Boolean): ItemDetailsState()
+    data class FailedRemovingProductFromFavorites(val error: Throwable): ItemDetailsState()
 }

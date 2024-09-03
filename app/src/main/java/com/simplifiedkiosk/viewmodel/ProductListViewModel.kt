@@ -101,11 +101,9 @@ class ProductListViewModel @Inject constructor(
                 .collectLatest { result ->
                     result.fold({ id ->
                         if(id != -1L){
-                            Log.e(TAG, "addToFavorites: product added to favorites", )
                             _productsState.value = ProductStateResults.AddedProductToFavoritesSuccess(true)
                         }
                     }, {
-                        Log.e(TAG, "addToFavorites: error adding to favorites. $it", )
                         _productsState.value = ProductStateResults.AddedProductToFavoritesFailed(it)
 
                     })

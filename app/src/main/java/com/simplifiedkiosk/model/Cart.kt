@@ -13,7 +13,7 @@ class Cart @Inject constructor(
     private val cartProducts = mutableListOf<ReactProduct>()
 
     suspend fun loadItemsFromDb(): Result<Map<String, String>> {
-        var result: Result<Map<String, String>> = Result.failure(Throwable("Failed to add to cart"))
+        var result: Result<Map<String, String>> = Result.failure(Throwable("cart is empty"))
 
         if (cartProducts.isEmpty()){
             // load from db and send
