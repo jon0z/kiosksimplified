@@ -14,12 +14,6 @@ import com.simplifiedkiosk.utils.SharedPreferencesManager
 import dagger.hilt.android.AndroidEntryPoint
 
 
-/**
- * A simple [Fragment] subclass.
- * Use the [ShippingAddressFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
-
 private const val TAG = "ShippingAddressFragment"
 @AndroidEntryPoint
 class ShippingAddressFragment : Fragment() {

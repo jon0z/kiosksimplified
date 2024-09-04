@@ -1,12 +1,9 @@
 package com.simplifiedkiosk.ui.checkout
 
-import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -27,7 +24,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
-import kotlin.math.log
 
 
 private const val TAG = "CheckoutFragment"
@@ -74,21 +70,9 @@ class CheckoutFragment : Fragment() {
                     .filterNotNull()
                     .collectLatest { state ->
                         when(state){
-                            is CheckoutStateResults.FailedLoadingCartItems -> {}
-                            is CheckoutStateResults.LoadedCartItems -> {}
                             CheckoutStateResults.Loading -> {}
                             is CheckoutStateResults.ReceivedProductsFromCartSummary -> {
-                                viewBinding.cartCalculationsContainer.subtotalTextview.text = formatDoubleToCurrencyString(state.checkoutState.cartSubTotal)
-                                val taxes = state.checkoutState.cartSubTotal * state.checkoutState.taxRate
-                                viewBinding.cartCalculationsContainer.taxesTextview.text = formatDoubleToCurrencyString(taxes)
-                                val shippingCharges = state.checkoutState.cartSubTotal * state.checkoutState.shippingRate
-                                viewBinding.cartCalculationsContainer.deliveryFeeTextview.text = formatDoubleToCurrencyString(shippingCharges)
-                                val total = state.checkoutState.cartSubTotal.plus(taxes).plus(shippingCharges)
-                                viewBinding.cartCalculationsContainer.totalTextview.text = formatDoubleToCurrencyString(total)
-
-                                state.checkoutState.address?.let {
-                                    viewBinding.addressContainer.deliveryAddressDetails.text = formatAddressToStringAddressDetails(it)
-                                }
+                                loadCartProducts(state.checkoutState)
                             }
                             is CheckoutStateResults.ClearedCartSuccess -> {
                                 findNavController().navigate(R.id.action_checkoutFragment_to_itemListFragment)
@@ -150,6 +134,20 @@ class CheckoutFragment : Fragment() {
 
         viewBinding.addressContainer.addNewAddress.setOnClickListener {
             findNavController().navigate(R.id.action_checkoutFragment_to_addressFragment)
+        }
+    }
+
+    private fun loadCartProducts(state: CheckoutState){
+        viewBinding.cartCalculationsContainer.subtotalTextview.text = formatDoubleToCurrencyString(state.cartSubTotal)
+        val taxes = state.cartSubTotal * state.taxRate
+        viewBinding.cartCalculationsContainer.taxesTextview.text = formatDoubleToCurrencyString(taxes)
+        val shippingCharges = state.cartSubTotal * state.shippingRate
+        viewBinding.cartCalculationsContainer.deliveryFeeTextview.text = formatDoubleToCurrencyString(shippingCharges)
+        val total = state.cartSubTotal.plus(taxes).plus(shippingCharges)
+        viewBinding.cartCalculationsContainer.totalTextview.text = formatDoubleToCurrencyString(total)
+
+        state.address?.let {
+            viewBinding.addressContainer.deliveryAddressDetails.text = formatAddressToStringAddressDetails(it)
         }
     }
 

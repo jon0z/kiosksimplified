@@ -30,7 +30,7 @@ class CheckoutViewModel @Inject constructor(
 
     fun processPayment(paymentMethod: String) {
         // Simulate payment processing logic
-        // Here you would integrate with a real payment gateway
+        // Here we would integrate with a real payment gateway
         viewModelScope.launch {
             if (paymentMethod.isNotBlank()) {
                 _checkoutState.value =
@@ -55,24 +55,6 @@ class CheckoutViewModel @Inject constructor(
         }
     }
 
-    fun addCartProduct(cartProduct: Product) {
-        viewModelScope.launch {
-            cartRepository.addProductToCart(cartProduct).collectLatest { result ->
-                result.fold({ cartDetails ->
-                    _checkoutState.value = CheckoutStateResults.LoadedCartItems(
-                        checkoutScreenState.copy(
-                            cartSubTotal = cartDetails["totalCartPrice"]?.toDouble() ?: 0.00,
-                            totalCartQuantity = cartDetails["totalCartQuantity"]?.toInt() ?: 0,
-                            cartProducts = cartRepository.getCartItems()
-                        )
-                    )
-                }, {
-                    _checkoutState.value = CheckoutStateResults.FailedLoadingCartItems(it)
-                })
-            }
-        }
-    }
-
     fun emptyCart() {
         viewModelScope.launch {
             cartRepository.clearCart().collectLatest { result ->
@@ -85,32 +67,11 @@ class CheckoutViewModel @Inject constructor(
         }
     }
 
-    fun removeCartProduct(cartProduct: Product) {
-        viewModelScope.launch {
-            cartRepository.removeProductFromCart(cartProduct).collectLatest { result ->
-                result.fold({ cartDetails ->
-                    _checkoutState.value = CheckoutStateResults.LoadedCartItems(
-                        checkoutScreenState.copy(
-                            cartSubTotal = cartDetails["totalCartPrice"]?.toDouble() ?: 0.00,
-                            totalCartQuantity = cartDetails["totalCartQuantity"]?.toInt() ?: 0,
-                            cartProducts = cartRepository.getCartItems()
-                        )
-                    )
-                }, {
-                    _checkoutState.value = CheckoutStateResults.FailedLoadingCartItems(it)
-                })
-
-            }
-        }
-    }
-
     fun getCartSize() = cartRepository.getCartTotalQuantity()
 }
 
 sealed class CheckoutStateResults {
     object Loading : CheckoutStateResults()
-    data class LoadedCartItems(val checkoutState: CheckoutState) : CheckoutStateResults()
-    data class FailedLoadingCartItems(val error: Throwable) : CheckoutStateResults()
     data class ReceivedProductsFromCartSummary(val checkoutState: CheckoutState) :
         CheckoutStateResults()
 

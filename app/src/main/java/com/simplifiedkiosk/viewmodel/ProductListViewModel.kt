@@ -33,7 +33,7 @@ class ProductListViewModel @Inject constructor(
 
     fun fetchReactProducts(){
         viewModelScope.launch {
-            productsRepository.fetchReactProducts()
+            productsRepository.fetchProducts()
                 .collectLatest {result ->
                     result.fold(
                         { products ->

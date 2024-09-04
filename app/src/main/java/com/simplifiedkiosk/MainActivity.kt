@@ -9,7 +9,6 @@ import androidx.appcompat.widget.Toolbar
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.NavigationUI
-import com.simplifiedkiosk.R
 import com.simplifiedkiosk.databinding.ActivityItemListBinding
 import dagger.hilt.android.AndroidEntryPoint
 

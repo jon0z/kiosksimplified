@@ -27,7 +27,7 @@ class ItemDetailsViewModel @Inject constructor(
 
     fun loadProductDetails(productId: Int) {
         viewModelScope.launch {
-            productsRepository.fetchReactProduct(productId).collectLatest { result ->
+            productsRepository.fetchSingleProduct(productId).collectLatest { result ->
                 result.fold({
                     _itemDetailsState.value = ItemDetailsState.SuccessLoadingReactProductDetails(it)
                 }, {

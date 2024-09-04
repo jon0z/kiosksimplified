@@ -6,8 +6,8 @@ import com.simplifiedkiosk.dao.CartDao
 import com.simplifiedkiosk.dao.FavoritesDao
 import com.simplifiedkiosk.database.AppDatabase
 import com.simplifiedkiosk.model.Cart
-import com.simplifiedkiosk.network.ReactProductsApiClient
-import com.simplifiedkiosk.network.ReacProductsApiService
+import com.simplifiedkiosk.network.ProductsApiClient
+import com.simplifiedkiosk.network.ProductsApiService
 import com.simplifiedkiosk.repository.CartRepository
 import com.simplifiedkiosk.repository.FavoritesRepository
 import com.simplifiedkiosk.repository.ProductsRepository
@@ -26,7 +26,7 @@ object AppModule {
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
         return Room.databaseBuilder(context, AppDatabase::class.java, "app_database")
-            .fallbackToDestructiveMigration()  // Rebuild the database on schema change
+            .fallbackToDestructiveMigration()
             .build()
     }
 
@@ -42,8 +42,8 @@ object AppModule {
         return appDatabase.favoritesDao()
     }
     @Provides
-    fun provideCommerceJsApiService(): ReacProductsApiService {
-        return ReactProductsApiClient.apiService
+    fun provideCommerceJsApiService(): ProductsApiService {
+        return ProductsApiClient.apiService
     }
 
     @Provides
@@ -53,7 +53,7 @@ object AppModule {
     }
 
     @Provides
-    fun provideReactProductsRepository(productsApiService: ReacProductsApiService): ProductsRepository {
+    fun provideReactProductsRepository(productsApiService: ProductsApiService): ProductsRepository {
         return ProductsRepository(productsApiService)
     }
 

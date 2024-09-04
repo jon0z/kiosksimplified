@@ -1,15 +1,15 @@
 package com.simplifiedkiosk.repository
 
 import com.simplifiedkiosk.model.Product
-import com.simplifiedkiosk.network.ReacProductsApiService
+import com.simplifiedkiosk.network.ProductsApiService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
 class ProductsRepository @Inject constructor(
-    private val productsApiService: ReacProductsApiService
+    private val productsApiService: ProductsApiService
 ) {
-    fun fetchReactProducts(): Flow<Result<List<Product>>> = flow {
+    fun fetchProducts(): Flow<Result<List<Product>>> = flow {
         val response = productsApiService.fetchProducts()
         if (response.isSuccessful) {
             response.body()?.let { productsResponse ->
@@ -23,7 +23,7 @@ class ProductsRepository @Inject constructor(
         }
     }
 
-    fun fetchReactProduct(productId: Int): Flow<Result<Product>> = flow {
+    fun fetchSingleProduct(productId: Int): Flow<Result<Product>> = flow {
         val response = productsApiService.fetchReactProductById(productId)
         if (response.isSuccessful) {
             response.body()?.let { product ->

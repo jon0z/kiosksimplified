@@ -14,14 +14,12 @@ class Cart @Inject constructor(
         var result: Result<Map<String, String>> = Result.failure(Throwable("cart is empty"))
 
         if (cartProducts.isEmpty()){
-            // load from db and send
             val productsDb = cartDao.getAllCartItems().map { it.toReactProduct() }
             if(productsDb.isNotEmpty()){
                 cartProducts.addAll(productsDb)
                 result = updateCartMap()
             }
         } else {
-            // send current loaded products
             result = updateCartMap()
         }
         return result

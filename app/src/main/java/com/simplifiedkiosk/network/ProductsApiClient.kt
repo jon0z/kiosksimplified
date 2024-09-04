@@ -1,12 +1,11 @@
 package com.simplifiedkiosk.network
 
-import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
-object ReactProductsApiClient {
+object ProductsApiClient {
     private const val BASE_URL = "https://dummyjson.com/"
     private const val CONNECT_TIMEOUT = 15L // 15 seconds
     private const val READ_TIMEOUT = 30L // 30 seconds
@@ -29,7 +28,7 @@ object ReactProductsApiClient {
             .build()
     }
 
-    val apiService: ReacProductsApiService by lazy {
-        retrofit.create(ReacProductsApiService::class.java)
+    val apiService: ProductsApiService by lazy {
+        retrofit.create(ProductsApiService::class.java)
     }
 }

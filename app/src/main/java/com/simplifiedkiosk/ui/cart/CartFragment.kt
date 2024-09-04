@@ -216,7 +216,7 @@ class CartFragment : Fragment(), EasyPermissions.PermissionCallbacks, MenuProvid
             viewBinding.cartCalculationsContainer.deliveryFeeLabel.textSize = 12f
             viewBinding.cartCalculationsContainer.deliveryFeeLabel.text = "Ship to $city, $state:"
 
-            val deliveryFee = subtotal * 0.15 // 25% of subtotal
+            val deliveryFee = subtotal * 0.15 // 15% of subtotal
             val deliveryFeeFmt = formatDoubleToCurrencyString(deliveryFee)
             viewBinding.cartCalculationsContainer.deliveryFeeTextview.text = "$deliveryFeeFmt"
 
