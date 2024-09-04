@@ -37,7 +37,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
-import com.simplifiedkiosk.model.ReactProduct
+import com.simplifiedkiosk.model.Product
 
 @Composable
 fun TopBar() {
@@ -71,7 +71,7 @@ fun TopBarPreview() {
 
 @Composable
 fun ProductListItem(
-    product: ReactProduct,
+    product: Product,
     onFavoriteClick: () -> Unit,
     onItemClick: () -> Unit
 ) {
@@ -126,7 +126,7 @@ fun ProductListItem(
 @Preview
 @Composable
 fun ProductListItemPreview() {
-    ProductListItem(product = ReactProduct(
+    ProductListItem(product = Product(
         productId = 1,
         title = "Product 1",
         price = 10.0,
@@ -136,9 +136,9 @@ fun ProductListItemPreview() {
 
 @Composable
 fun ProductList(
-    products: List<ReactProduct>,
-    onFavoriteClick: (ReactProduct) -> Unit,
-    onItemClick: (ReactProduct) -> Unit
+    products: List<Product>,
+    onFavoriteClick: (Product) -> Unit,
+    onItemClick: (Product) -> Unit
 ) {
     LazyColumn {
         products.forEach {product ->
@@ -158,13 +158,13 @@ fun ProductList(
 @Composable
 fun ProductListPreview() {
     ProductList(products = listOf(
-        ReactProduct(
+        Product(
             productId = 1,
             title = "Product 1",
             price = 10.0,
             description = "Description",
         ),
-        ReactProduct(
+        Product(
             productId = 2,
             title = "Product 2",
             price = 20.0,
@@ -207,9 +207,9 @@ fun BottomNavigationBarPreview() {
 
 @Composable
 fun ProductScreen(
-    products: List<ReactProduct>,
-    onFavoriteClick: (ReactProduct) -> Unit,
-    onItemClick: (ReactProduct) -> Unit
+    products: List<Product>,
+    onFavoriteClick: (Product) -> Unit,
+    onItemClick: (Product) -> Unit
 ) {
     Scaffold(
         topBar = { TopBar() },
@@ -228,11 +228,11 @@ fun ProductScreen(
 @Composable
 fun ProductScreenPreview() {
     val products = listOf(
-        ReactProduct(1, "iPhone X mobile", 1000.00, description = "Description"),
-        ReactProduct(2, "Wireless Earphones", 350.00, description = "Description"),
-        ReactProduct(3, "iwatch series 5", 550.00, description = "Description"),
-        ReactProduct(4, "Laptop Cover", 150.00, description = "Description"),
-        ReactProduct(5, "Mobile Cover", 50.00, description = "Description")
+        Product(1, "iPhone X mobile", 1000.00, description = "Description"),
+        Product(2, "Wireless Earphones", 350.00, description = "Description"),
+        Product(3, "iwatch series 5", 550.00, description = "Description"),
+        Product(4, "Laptop Cover", 150.00, description = "Description"),
+        Product(5, "Mobile Cover", 50.00, description = "Description")
     )
 
     ProductScreen(

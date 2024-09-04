@@ -3,7 +3,7 @@ package com.simplifiedkiosk.viewmodel
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.simplifiedkiosk.model.ReactProduct
+import com.simplifiedkiosk.model.Product
 import com.simplifiedkiosk.repository.CartRepository
 import com.simplifiedkiosk.repository.FavoritesRepository
 import com.simplifiedkiosk.repository.ReactProductsRepository
@@ -37,15 +37,15 @@ class ItemDetailsViewModel @Inject constructor(
         }
     }
 
-    fun addToCart(product: ReactProduct) {
-        Log.e("ItemDetailsViewModel", "*** inside addToCart" )
+    fun addToCart(product: Product) {
+        Log.e("ItemDetailsViewModel", "*** inside addToCart")
         viewModelScope.launch {
             cartRepository.addProductToCart(product = product).collectLatest { result ->
                 result.fold({ cartMap ->
-                    Log.e("ItemDetailsViewModel", "*** addToCart: success" )
+                    Log.e("ItemDetailsViewModel", "*** addToCart: success")
                     _itemDetailsState.value = ItemDetailsState.SuccessAddingProductToCart(cartMap)
                 }, {
-                    Log.e("ItemDetailsViewModel", "*** addToCart: failed with error ${it.message}" )
+                    Log.e("ItemDetailsViewModel", "*** addToCart: failed with error ${it.message}")
                     _itemDetailsState.value = ItemDetailsState.FailedAddingProductToCart(it)
                 })
             }
@@ -66,7 +66,7 @@ class ItemDetailsViewModel @Inject constructor(
         }
     }
 
-    fun addToFavorites(product: ReactProduct) {
+    fun addToFavorites(product: Product) {
         viewModelScope.launch {
             favoritesRepository.addOrUpdateFavorite(product)
                 .collectLatest { result ->
@@ -83,7 +83,7 @@ class ItemDetailsViewModel @Inject constructor(
         }
     }
 
-    fun removeFromFavorites(product: ReactProduct) {
+    fun removeFromFavorites(product: Product) {
         viewModelScope.launch {
             favoritesRepository.removeFavorite(product)
                 .collectLatest { result ->
@@ -103,14 +103,14 @@ class ItemDetailsViewModel @Inject constructor(
 
 sealed class ItemDetailsState {
     object Loading : ItemDetailsState()
-    data class SuccessAddingProductToCart(val cartDetails: Map<String, String>): ItemDetailsState()
-    data class FailedAddingProductToCart(val error: Throwable): ItemDetailsState()
-    data class SuccessLoadingCartItems(val cartDetails: Map<String, String>): ItemDetailsState()
-    data class SuccessLoadingReactProductDetails(val product: ReactProduct): ItemDetailsState()
-    data class FailedLoadingReactProductDetails(val error: Throwable): ItemDetailsState()
-    data class FailedLoadingCartItems(val error: Throwable): ItemDetailsState()
-    data class SuccessAddingProductToFavorites(val success: Boolean): ItemDetailsState()
-    data class FailedAddingProductToFavorites(val error: Throwable): ItemDetailsState()
-    data class SuccessRemovingProductFromFavorites(val success: Boolean): ItemDetailsState()
-    data class FailedRemovingProductFromFavorites(val error: Throwable): ItemDetailsState()
+    data class SuccessAddingProductToCart(val cartDetails: Map<String, String>) : ItemDetailsState()
+    data class FailedAddingProductToCart(val error: Throwable) : ItemDetailsState()
+    data class SuccessLoadingCartItems(val cartDetails: Map<String, String>) : ItemDetailsState()
+    data class SuccessLoadingReactProductDetails(val product: Product) : ItemDetailsState()
+    data class FailedLoadingReactProductDetails(val error: Throwable) : ItemDetailsState()
+    data class FailedLoadingCartItems(val error: Throwable) : ItemDetailsState()
+    data class SuccessAddingProductToFavorites(val success: Boolean) : ItemDetailsState()
+    data class FailedAddingProductToFavorites(val error: Throwable) : ItemDetailsState()
+    data class SuccessRemovingProductFromFavorites(val success: Boolean) : ItemDetailsState()
+    data class FailedRemovingProductFromFavorites(val error: Throwable) : ItemDetailsState()
 }

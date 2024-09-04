@@ -1,8 +1,6 @@
 package com.simplifiedkiosk.model
 
 import com.simplifiedkiosk.dao.CartDao
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 
@@ -10,7 +8,7 @@ private const val TAG = "Cart"
 class Cart @Inject constructor(
     private val cartDao: CartDao
 ) {
-    private val cartProducts = mutableListOf<ReactProduct>()
+    private val cartProducts = mutableListOf<Product>()
 
     suspend fun loadItemsFromDb(): Result<Map<String, String>> {
         var result: Result<Map<String, String>> = Result.failure(Throwable("cart is empty"))
@@ -29,32 +27,20 @@ class Cart @Inject constructor(
         return result
     }
 
-    fun loadCartProducts(): Flow<List<Product>> = cartDao.getAllCartItemsFlow().map {
-        it.map { it.toProduct() }
-    }
-
-    suspend fun addProduct(product: ReactProduct): Result<Map<String, String>> {
+    suspend fun addProduct(product: Product): Result<Map<String, String>> {
         val productIndex = cartProducts.indexOfFirst { it.productId == product.productId }
         if (productIndex != -1) {
-            // product already in cart
-            // update quantity
             cartProducts[productIndex].quantity = cartProducts[productIndex].quantity?.plus(1)
-            // update product in database
             val rowId = cartDao.insertOrUpdateCartItem(cartProducts[productIndex].toCartItem())
-            // send result
             return if (rowId != -1L) {
                 updateCartMap()
             } else{
                 Result.failure(Throwable("Failed to update product"))
             }
         } else {
-            // product not in cart. Update quantity
             product.quantity = 1
-            // add product to cart
             cartProducts.add(product)
-            // add product to database
             val newRowId = cartDao.insertOrUpdateCartItem(product.toCartItem())
-            // send result
             return if (newRowId != -1L) {
                 updateCartMap()
             } else{
@@ -63,7 +49,7 @@ class Cart @Inject constructor(
         }
     }
 
-    suspend fun removeProduct(product: ReactProduct): Result<Map<String, String>> {
+    suspend fun removeProduct(product: Product): Result<Map<String, String>> {
         var result: Result<Map<String, String>> = Result.failure(Throwable("Failed to remove product"))
         val productIndex = cartProducts.indexOfFirst { it.productId == product.productId }
         if (productIndex == -1) {
@@ -94,7 +80,7 @@ class Cart @Inject constructor(
     }
 
     // Get the list of items in the cart
-    fun getProducts(): List<ReactProduct> {
+    fun getProducts(): List<Product> {
         return cartProducts
     }
 

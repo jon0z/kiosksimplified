@@ -7,7 +7,6 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.simplifiedkiosk.model.FavoriteEntity
-import com.simplifiedkiosk.model.ReactProduct
 
 
 @Dao
@@ -29,8 +28,4 @@ interface FavoritesDao {
 
     @Query("DELETE FROM favorites_table")
     suspend fun deleteFavorites(): Int
-
-
-
-
 }

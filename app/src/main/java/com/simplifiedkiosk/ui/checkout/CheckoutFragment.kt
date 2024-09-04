@@ -75,20 +75,9 @@ class CheckoutFragment : Fragment() {
                     .collectLatest { state ->
                         when(state){
                             is CheckoutStateResults.FailedLoadingCartItems -> {}
-                            is CheckoutStateResults.LoadedCartItems -> {
-                                val cartProduct = state.checkoutState.cartProducts
-                                val cartPrice = state.checkoutState.cartSubTotal
-                                val cartQuantity = state.checkoutState.totalCartQuantity
-
-                                // update recycler view with new cart products
-
-                                // update total price view
-
-
-                            }
+                            is CheckoutStateResults.LoadedCartItems -> {}
                             CheckoutStateResults.Loading -> {}
                             is CheckoutStateResults.ReceivedProductsFromCartSummary -> {
-                                // update checkout charges summary
                                 viewBinding.cartCalculationsContainer.subtotalTextview.text = formatDoubleToCurrencyString(state.checkoutState.cartSubTotal)
                                 val taxes = state.checkoutState.cartSubTotal * state.checkoutState.taxRate
                                 viewBinding.cartCalculationsContainer.taxesTextview.text = formatDoubleToCurrencyString(taxes)
@@ -97,12 +86,10 @@ class CheckoutFragment : Fragment() {
                                 val total = state.checkoutState.cartSubTotal.plus(taxes).plus(shippingCharges)
                                 viewBinding.cartCalculationsContainer.totalTextview.text = formatDoubleToCurrencyString(total)
 
-                                // update checkout address
                                 state.checkoutState.address?.let {
                                     viewBinding.addressContainer.deliveryAddressDetails.text = formatAddressToStringAddressDetails(it)
                                 }
                             }
-
                             is CheckoutStateResults.ClearedCartSuccess -> {
                                 findNavController().navigate(R.id.action_checkoutFragment_to_itemListFragment)
                             }
@@ -113,7 +100,6 @@ class CheckoutFragment : Fragment() {
                                     message = state.error.message ?: "Failed to clear cart",
                                 )
                             }
-
                             is CheckoutStateResults.FailedPaymentProcessing -> {
                                 showAlertDialog(
                                     context = requireActivity(),
@@ -149,11 +135,9 @@ class CheckoutFragment : Fragment() {
         viewBinding.paymentsContainer.paymentMethodGroup.setOnCheckedChangeListener { radioGroup, checkedId ->
             when(checkedId){
                 R.id.paymentCreditCard -> {
-                    Log.e(TAG, "onViewCreated: selected credit card" )
                     mSelectedPaymentMethod = "creditCard"
                 }
                 R.id.paymentGpay -> {
-                    Log.e(TAG, "onViewCreated: selected Google Pay", )
                     mSelectedPaymentMethod = "gpay"
                 }
             }
@@ -161,13 +145,6 @@ class CheckoutFragment : Fragment() {
 
         viewBinding.addressContainer.addNewAddress.setOnClickListener {
             findNavController().navigate(R.id.action_checkoutFragment_to_addressFragment)
-        }
-    }
-
-    private fun hideSoftKeyboard(){
-        val inputMethodManager = activity?.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        view?.let {
-            inputMethodManager.hideSoftInputFromWindow(it.windowToken, 0)
         }
     }
 

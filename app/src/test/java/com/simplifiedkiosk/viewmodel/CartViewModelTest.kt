@@ -2,7 +2,7 @@ package com.simplifiedkiosk.viewmodel
 
 import android.app.Application
 import com.google.common.truth.Truth
-import com.simplifiedkiosk.model.ReactProduct
+import com.simplifiedkiosk.model.Product
 import com.simplifiedkiosk.repository.CartRepository
 import io.mockk.coEvery
 import io.mockk.every
@@ -17,8 +17,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.RuntimeEnvironment
-import org.robolectric.RuntimeEnvironment.application
 
 @RunWith(RobolectricTestRunner::class)
 class CartViewModelTest {
@@ -38,7 +36,7 @@ class CartViewModelTest {
         
         val cartRepository = mockk<CartRepository>()
         val cartViewModel = CartViewModel(applicationMock, cartRepository)
-        val cartProducts = listOf(ReactProduct())
+        val cartProducts = listOf(Product())
         every { cartRepository.getCartItems() } returns cartProducts
 
         
@@ -85,7 +83,7 @@ class CartViewModelTest {
         coEvery { cartRepository.removeProductFromCart(any()) } returns flowOf(Result.success(emptyMap()))
         coEvery { cartRepository.loadCartItems() } returns flowOf(Result.success(emptyMap()))
         val cartViewModel = CartViewModel(applicationMock, cartRepository)
-        val product = ReactProduct()
+        val product = Product()
 
 
         
@@ -103,7 +101,7 @@ class CartViewModelTest {
         val result = Result.failure<Map<String, String>>(Throwable("Error"))
         val cartRepository = mockk<CartRepository>()
         val cartViewModel = CartViewModel(applicationMock, cartRepository)
-        val product = ReactProduct()
+        val product = Product()
         every { cartRepository.removeProductFromCart(product) } returns flowOf(result)
 
         
@@ -121,7 +119,7 @@ class CartViewModelTest {
         coEvery { cartRepository.addProductToCart(any()) } returns flowOf(Result.success(emptyMap()))
         
         val cartViewModel = CartViewModel(applicationMock, cartRepository)
-        val product = ReactProduct()
+        val product = Product()
         
         cartViewModel.addProductToCart(product)
         
@@ -137,7 +135,7 @@ class CartViewModelTest {
         
         val cartRepository = mockk<CartRepository>()
         val cartViewModel = CartViewModel(applicationMock, cartRepository)
-        val product = ReactProduct()
+        val product = Product()
         every { cartRepository.addProductToCart(product) } returns flowOf(result)
 
         

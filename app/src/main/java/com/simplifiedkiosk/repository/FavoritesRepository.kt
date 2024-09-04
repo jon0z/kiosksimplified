@@ -2,7 +2,7 @@ package com.simplifiedkiosk.repository
 
 import android.util.Log
 import com.simplifiedkiosk.dao.FavoritesDao
-import com.simplifiedkiosk.model.ReactProduct
+import com.simplifiedkiosk.model.Product
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import java.sql.SQLException
@@ -11,7 +11,7 @@ import javax.inject.Inject
 class FavoritesRepository @Inject constructor(
     private val favoritesDao: FavoritesDao
 ){
-    fun getFavorites(): Flow<Result<List<ReactProduct>>> = flow {
+    fun getFavorites(): Flow<Result<List<Product>>> = flow {
         val result = try {
             val favorites = favoritesDao.getFavorites().map { it.toReactProduct() }
             if (favorites.isNotEmpty()){
@@ -24,7 +24,7 @@ class FavoritesRepository @Inject constructor(
         }
         emit(result)
     }
-    fun addOrUpdateFavorite(product: ReactProduct): Flow<Result<Long>> = flow {
+    fun addOrUpdateFavorite(product: Product): Flow<Result<Long>> = flow {
         val result = try {
             val newRowId = favoritesDao.addOrUpdateFavorite(product.toFavoriteEntity())
             Log.e("FavoritesRepository", "addFavorite: new row id: $newRowId" )
@@ -38,7 +38,7 @@ class FavoritesRepository @Inject constructor(
         }
         emit(result)
     }
-    fun removeFavorite(product: ReactProduct): Flow<Result<Int>> = flow{
+    fun removeFavorite(product: Product): Flow<Result<Int>> = flow{
         val result = try {
             var rowsDeleted = 0
             rowsDeleted = favoritesDao.removeFavorite(product.toFavoriteEntity())

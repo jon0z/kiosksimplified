@@ -9,7 +9,7 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.CancellationTokenSource
-import com.simplifiedkiosk.model.ReactProduct
+import com.simplifiedkiosk.model.Product
 import com.simplifiedkiosk.repository.CartRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -43,17 +43,17 @@ class CartViewModel @Inject constructor(
         }
     }
 
-    fun getCartProducts(): List<ReactProduct> {
+    fun getCartProducts(): List<Product> {
         return cartRepository.getCartItems()
     }
 
-    fun getCartSize(): Int  = cartRepository.getCartTotalQuantity()
+    fun getCartSize(): Int = cartRepository.getCartTotalQuantity()
 
     fun getCartTotalPrice(): Double {
         return cartRepository.getCartTotalPrice()
     }
 
-    fun removeProductFromCart(cartProduct: ReactProduct) {
+    fun removeProductFromCart(cartProduct: Product) {
         viewModelScope.launch {
             cartRepository.removeProductFromCart(cartProduct).collectLatest { result ->
                 result.fold({ cartMap ->
@@ -65,7 +65,7 @@ class CartViewModel @Inject constructor(
         }
     }
 
-    fun addProductToCart(cartProduct: ReactProduct) {
+    fun addProductToCart(cartProduct: Product) {
         viewModelScope.launch {
             cartRepository.addProductToCart(cartProduct).collectLatest { result ->
                 result.fold({ cartMap ->

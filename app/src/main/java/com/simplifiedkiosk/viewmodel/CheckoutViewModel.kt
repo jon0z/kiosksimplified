@@ -4,7 +4,7 @@ import android.location.Address
 import android.os.Parcelable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.simplifiedkiosk.model.ReactProduct
+import com.simplifiedkiosk.model.Product
 import com.simplifiedkiosk.repository.CartRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,10 +32,12 @@ class CheckoutViewModel @Inject constructor(
         // Simulate payment processing logic
         // Here you would integrate with a real payment gateway
         viewModelScope.launch {
-            if(paymentMethod.isNotBlank()){
-                _checkoutState.value = CheckoutStateResults.SuccessfulPaymentProcessed(paymentMethod.isNotBlank())
-            } else{
-                _checkoutState.value = CheckoutStateResults.FailedPaymentProcessing(Throwable("Payment Failed. Please try again"))
+            if (paymentMethod.isNotBlank()) {
+                _checkoutState.value =
+                    CheckoutStateResults.SuccessfulPaymentProcessed(paymentMethod.isNotBlank())
+            } else {
+                _checkoutState.value =
+                    CheckoutStateResults.FailedPaymentProcessing(Throwable("Payment Failed. Please try again"))
             }
         }
     }
@@ -53,14 +55,14 @@ class CheckoutViewModel @Inject constructor(
         }
     }
 
-    fun addCartProduct(cartProduct: ReactProduct) {
+    fun addCartProduct(cartProduct: Product) {
         viewModelScope.launch {
             cartRepository.addProductToCart(cartProduct).collectLatest { result ->
                 result.fold({ cartDetails ->
                     _checkoutState.value = CheckoutStateResults.LoadedCartItems(
                         checkoutScreenState.copy(
                             cartSubTotal = cartDetails["totalCartPrice"]?.toDouble() ?: 0.00,
-                            totalCartQuantity = cartDetails["totalCartQuantity"]?.toInt()  ?: 0,
+                            totalCartQuantity = cartDetails["totalCartQuantity"]?.toInt() ?: 0,
                             cartProducts = cartRepository.getCartItems()
                         )
                     )
@@ -71,7 +73,7 @@ class CheckoutViewModel @Inject constructor(
         }
     }
 
-    fun emptyCart(){
+    fun emptyCart() {
         viewModelScope.launch {
             cartRepository.clearCart().collectLatest { result ->
                 result.fold({ didClear ->
@@ -83,14 +85,14 @@ class CheckoutViewModel @Inject constructor(
         }
     }
 
-    fun removeCartProduct(cartProduct: ReactProduct) {
+    fun removeCartProduct(cartProduct: Product) {
         viewModelScope.launch {
-            cartRepository.removeProductFromCart(cartProduct).collectLatest {result ->
+            cartRepository.removeProductFromCart(cartProduct).collectLatest { result ->
                 result.fold({ cartDetails ->
                     _checkoutState.value = CheckoutStateResults.LoadedCartItems(
                         checkoutScreenState.copy(
                             cartSubTotal = cartDetails["totalCartPrice"]?.toDouble() ?: 0.00,
-                            totalCartQuantity = cartDetails["totalCartQuantity"]?.toInt()  ?: 0,
+                            totalCartQuantity = cartDetails["totalCartQuantity"]?.toInt() ?: 0,
                             cartProducts = cartRepository.getCartItems()
                         )
                     )
@@ -106,14 +108,16 @@ class CheckoutViewModel @Inject constructor(
 }
 
 sealed class CheckoutStateResults {
-    object Loading: CheckoutStateResults()
-    data class LoadedCartItems(val checkoutState: CheckoutState): CheckoutStateResults()
-    data class FailedLoadingCartItems(val error: Throwable): CheckoutStateResults()
-    data class ReceivedProductsFromCartSummary(val checkoutState: CheckoutState): CheckoutStateResults()
-    data class ClearedCartSuccess(val didClear: Boolean): CheckoutStateResults()
-    data class FailedClearedCart(val error: Throwable): CheckoutStateResults()
-    data class FailedPaymentProcessing(val error: Throwable): CheckoutStateResults()
-    data class SuccessfulPaymentProcessed(val didProcess: Boolean): CheckoutStateResults()
+    object Loading : CheckoutStateResults()
+    data class LoadedCartItems(val checkoutState: CheckoutState) : CheckoutStateResults()
+    data class FailedLoadingCartItems(val error: Throwable) : CheckoutStateResults()
+    data class ReceivedProductsFromCartSummary(val checkoutState: CheckoutState) :
+        CheckoutStateResults()
+
+    data class ClearedCartSuccess(val didClear: Boolean) : CheckoutStateResults()
+    data class FailedClearedCart(val error: Throwable) : CheckoutStateResults()
+    data class FailedPaymentProcessing(val error: Throwable) : CheckoutStateResults()
+    data class SuccessfulPaymentProcessed(val didProcess: Boolean) : CheckoutStateResults()
 
 }
 
@@ -121,9 +125,9 @@ sealed class CheckoutStateResults {
 data class CheckoutState(
     var cartSubTotal: Double = 0.0,
     var totalCartQuantity: Int = 0,
-    var cartProducts: List<ReactProduct> = emptyList(),
+    var cartProducts: List<Product> = emptyList(),
     val shippingRate: Double = 0.15, // 15% shipping
     val taxRate: Double = 0.08, // 8% tax default
     var address: Address? = null,
     var paymentMethod: String? = "googlePay",
-): Parcelable
+) : Parcelable

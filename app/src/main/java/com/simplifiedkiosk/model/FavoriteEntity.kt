@@ -12,8 +12,8 @@ data class FavoriteEntity(
     val thumbnail: String,
     var isFavorite: Boolean = false
 ) {
-    fun toReactProduct(): ReactProduct {
-        return ReactProduct(
+    fun toReactProduct(): Product {
+        return Product(
             productId = productId,
             title = title,
             price = price,

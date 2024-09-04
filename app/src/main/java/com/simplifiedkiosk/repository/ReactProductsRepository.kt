@@ -1,7 +1,6 @@
 package com.simplifiedkiosk.repository
 
-import androidx.room.util.query
-import com.simplifiedkiosk.model.ReactProduct
+import com.simplifiedkiosk.model.Product
 import com.simplifiedkiosk.network.ReacProductsApiService
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -10,7 +9,7 @@ import javax.inject.Inject
 class ReactProductsRepository @Inject constructor(
     private val productsApiService: ReacProductsApiService
 ) {
-    fun fetchReactProducts(): Flow<Result<List<ReactProduct>>> = flow {
+    fun fetchReactProducts(): Flow<Result<List<Product>>> = flow {
         val response = productsApiService.fetchProducts()
         if (response.isSuccessful) {
             response.body()?.let { productsResponse ->
@@ -24,7 +23,7 @@ class ReactProductsRepository @Inject constructor(
         }
     }
 
-    fun fetchReactProduct(productId: Int): Flow<Result<ReactProduct>> = flow {
+    fun fetchReactProduct(productId: Int): Flow<Result<Product>> = flow {
         val response = productsApiService.fetchReactProductById(productId)
         if (response.isSuccessful) {
             response.body()?.let { product ->
@@ -37,7 +36,7 @@ class ReactProductsRepository @Inject constructor(
         }
     }
 
-    fun searchProducts(query: String): Flow<Result<List<ReactProduct>>> = flow {
+    fun searchProducts(query: String): Flow<Result<List<Product>>> = flow {
         val response = productsApiService.searchProducts(query)
         if (response.isSuccessful) {
             response.body()?.let { productsResponse ->

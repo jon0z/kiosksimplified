@@ -9,7 +9,6 @@ import com.simplifiedkiosk.dao.CartDao
 import com.simplifiedkiosk.dao.FavoritesDao
 import com.simplifiedkiosk.model.CartItemEntity
 import com.simplifiedkiosk.model.FavoriteEntity
-import com.simplifiedkiosk.model.ReactProduct
 
 @Database(entities = [CartItemEntity::class, FavoriteEntity::class], version = 1, exportSchema = false)
 @TypeConverters(ImagesTypeConverted::class)

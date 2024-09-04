@@ -27,7 +27,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class FavoritesFragment: Fragment(), MenuProvider {
+class FavoritesFragment : Fragment(), MenuProvider {
 
     private lateinit var viewBinding: FragmentFavoritesBinding
     private val favoritesViewModel: FavoritesViewModel by viewModels()
@@ -43,9 +43,9 @@ class FavoritesFragment: Fragment(), MenuProvider {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED){
-                favoritesViewModel.favoritesState.collectLatest {state ->
-                    when(state){
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                favoritesViewModel.favoritesState.collectLatest { state ->
+                    when (state) {
                         is FavoritesStateResults.FetchFavoritesError -> {
                             showAlertDialog(
                                 context = requireActivity(),
@@ -56,6 +56,7 @@ class FavoritesFragment: Fragment(), MenuProvider {
                                     findNavController().navigate(R.id.action_favoritesFragment_to_itemListFragment)
                                 })
                         }
+
                         is FavoritesStateResults.FetchFavoritesSuccess -> {
                             val products = state.favorites
                             viewBinding.composeView.setViewTreeLifecycleOwner(viewLifecycleOwner)
@@ -63,39 +64,52 @@ class FavoritesFragment: Fragment(), MenuProvider {
                                 ProductList(
                                     products = products,
                                     onFavoriteClick = { selecteProduct ->
-                                                      selecteProduct.isFavorite?.let {
-                                                          if(it){
-                                                              selecteProduct.isFavorite = false
-                                                              favoritesViewModel.removeFromFavorites(selecteProduct)
-                                                          } else {
-                                                              selecteProduct.isFavorite = true
-                                                              favoritesViewModel.addProductToFavorites(selecteProduct)
-                                                          }
-                                                      }
+                                        selecteProduct.isFavorite?.let {
+                                            if (it) {
+                                                selecteProduct.isFavorite = false
+                                                favoritesViewModel.removeFromFavorites(
+                                                    selecteProduct
+                                                )
+                                            } else {
+                                                selecteProduct.isFavorite = true
+                                                favoritesViewModel.addProductToFavorites(
+                                                    selecteProduct
+                                                )
+                                            }
+                                        }
                                     },
                                     onItemClick = { selectedProduct ->
                                         selectedProduct.productId?.let {
-                                            findNavController().navigate(R.id.action_favoritesFragment_to_itemDetailsFragment, bundleOf("productId" to it))
+                                            findNavController().navigate(
+                                                R.id.action_favoritesFragment_to_itemDetailsFragment,
+                                                bundleOf("productId" to it)
+                                            )
                                         }
-                                    } )
+                                    })
                             }
                         }
+
                         FavoritesStateResults.Loading -> {}
                         is FavoritesStateResults.AddProductToFavoritesFailed -> {
                             showAlertDialog(
                                 context = requireActivity(),
                                 title = "Error",
-                                message = "Failed to add product to favorites. \n${state.error.message}")
+                                message = "Failed to add product to favorites. \n${state.error.message}"
+                            )
                         }
+
                         is FavoritesStateResults.AddProductToFavoritesSuccess -> {}
                         is FavoritesStateResults.RemoveProductFromFavoritesFailed -> {
                             showAlertDialog(
                                 context = requireActivity(),
                                 title = "Error",
-                                message = "Failed to remove product from favorites. \n${state.error.message}")
+                                message = "Failed to remove product from favorites. \n${state.error.message}"
+                            )
                         }
+
                         is FavoritesStateResults.RemoveProductFromFavoritesSuccess -> {
                         }
+
                         is FavoritesStateResults.FailedDeleteAllFavorites -> {
                             showAlertDialog(
                                 context = requireActivity(),
@@ -104,6 +118,7 @@ class FavoritesFragment: Fragment(), MenuProvider {
                                 positiveButtonText = "Ok",
                             )
                         }
+
                         is FavoritesStateResults.SuccessDeleteAllFavorites -> {
                             showAlertDialog(
                                 context = requireActivity(),
@@ -127,11 +142,12 @@ class FavoritesFragment: Fragment(), MenuProvider {
     }
 
     override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-        return when(menuItem.itemId){
+        return when (menuItem.itemId) {
             R.id.action_delete -> {
                 favoritesViewModel.deleteAllFavorites()
                 true
             }
+
             else -> {
                 false
             }

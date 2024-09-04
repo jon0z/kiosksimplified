@@ -8,13 +8,9 @@ import com.simplifiedkiosk.database.AppDatabase
 import com.simplifiedkiosk.model.Cart
 import com.simplifiedkiosk.network.ReactProductsApiClient
 import com.simplifiedkiosk.network.ReacProductsApiService
-import com.simplifiedkiosk.network.FakeProductApiService
-import com.simplifiedkiosk.network.FakeProductsApiClient
 import com.simplifiedkiosk.repository.CartRepository
 import com.simplifiedkiosk.repository.FavoritesRepository
-import com.simplifiedkiosk.repository.ProductsRepository
 import com.simplifiedkiosk.repository.ReactProductsRepository
-import com.simplifiedkiosk.ui.itemlist.ItemAdapter
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -51,19 +47,9 @@ object AppModule {
     }
 
     @Provides
-    fun provideFakeProductsApiService(): FakeProductApiService {
-        return FakeProductsApiClient.apiService
-    }
-
-    @Provides
     @Singleton
     fun provideCartRepository(cart: Cart): CartRepository {
         return CartRepository(cart)
-    }
-
-    @Provides
-    fun provideProductsRepository(productsApi: FakeProductApiService): ProductsRepository {
-        return ProductsRepository(productsApi)
     }
 
     @Provides
@@ -74,11 +60,6 @@ object AppModule {
     @Provides
     fun provideFavoritesRepository(favoritesDao: FavoritesDao): FavoritesRepository{
         return FavoritesRepository(favoritesDao)
-    }
-
-    @Provides
-    fun provideItemAdapter(): ItemAdapter {
-        return ItemAdapter {}
     }
 
     @Provides

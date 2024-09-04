@@ -1,4 +1,4 @@
-package com.simplifiedkiosk.ui.itemlist
+package com.simplifiedkiosk
 
 import android.os.Bundle
 import android.view.Gravity
@@ -14,7 +14,7 @@ import com.simplifiedkiosk.databinding.ActivityItemListBinding
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class ItemListActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity() {
 
     private lateinit var viewBinding: ActivityItemListBinding
     private lateinit var navController: NavController
@@ -34,14 +34,13 @@ class ItemListActivity : AppCompatActivity() {
         val toolBarTitle = supportActionBar?.customView?.findViewById<TextView>(R.id.toolbar_title)
         toolBarTitle?.text = "REEF KIOSK"
 
-        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        val navHostFragment =
+            supportFragmentManager.findFragmentById(R.id.nav_host_fragment) as NavHostFragment
         navController = navHostFragment.navController
 
-        // Set up ActionBar to work with navController
         NavigationUI.setupActionBarWithNavController(this, navController)
     }
 
-    // Handle Up navigation in the action bar
     override fun onSupportNavigateUp(): Boolean {
         return navController.navigateUp() || super.onSupportNavigateUp()
     }

@@ -11,11 +11,11 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.simplifiedkiosk.R
-import com.simplifiedkiosk.model.ReactProduct
+import com.simplifiedkiosk.model.Product
 import com.squareup.picasso.Picasso
 
 private const val TAG = "CartAdapter"
-class CartAdapter(private val onRemoveItemClick: (ReactProduct) -> Unit, private val onAddItemClick: (ReactProduct) -> Unit) : ListAdapter<ReactProduct, CartAdapter.CartViewHolder>(CartItemDiffCallback()) {
+class CartAdapter(private val onRemoveItemClick: (Product) -> Unit, private val onAddItemClick: (Product) -> Unit) : ListAdapter<Product, CartAdapter.CartViewHolder>(CartItemDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CartViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.cart_product_row_layout, parent, false)
@@ -29,8 +29,8 @@ class CartAdapter(private val onRemoveItemClick: (ReactProduct) -> Unit, private
 
     class CartViewHolder(
         itemView: View,
-        private val onRemoveItemClick: (ReactProduct) -> Unit,
-        private val onAddItemClick: (ReactProduct) -> Unit,
+        private val onRemoveItemClick: (Product) -> Unit,
+        private val onAddItemClick: (Product) -> Unit,
     ) : RecyclerView.ViewHolder(itemView) {
         private val itemNameTextView: TextView = itemView.findViewById(R.id.cart_item_name_textview)
         private val itemQuantityTextView: TextView = itemView.findViewById(R.id.cart_item_quantity)
@@ -40,15 +40,13 @@ class CartAdapter(private val onRemoveItemClick: (ReactProduct) -> Unit, private
         private val itemAddButton: ImageButton = itemView.findViewById(R.id.increase_quantity_btn)
         private val itemImage: ImageView = itemView.findViewById(R.id.productImage)
 
-        fun bind(cartProduct: ReactProduct) {
+        fun bind(cartProduct: Product) {
             itemNameTextView.text = cartProduct.title
             itemDescriptionTextView.text = cartProduct.description
             itemQuantityTextView.text = "Qty: ${cartProduct.quantity}"
             if(cartProduct.thumbnail != null){
-                Log.e(TAG, "bind: thumbnail is not null")
                 Picasso.get().load(cartProduct.thumbnail).into(itemImage)
             } else {
-                Log.e(TAG, "bind: thumbnail is null")
                 itemImage.setImageResource(R.mipmap.product_image_placeholder_48x48)
             }
 
@@ -70,7 +68,7 @@ class CartAdapter(private val onRemoveItemClick: (ReactProduct) -> Unit, private
         }
     }
 
-    fun updateCartItem(newProduct: ReactProduct){
+    fun updateCartItem(newProduct: Product){
         val existingItemPosition = currentList.indexOfFirst { it.productId == newProduct.productId }
         if (existingItemPosition != -1){
             val existingItem = getItem(existingItemPosition)
@@ -112,12 +110,12 @@ class CartAdapter(private val onRemoveItemClick: (ReactProduct) -> Unit, private
     }
 }
 
-class CartItemDiffCallback : DiffUtil.ItemCallback<ReactProduct>() {
-    override fun areItemsTheSame(oldItem: ReactProduct, newItem: ReactProduct): Boolean {
+class CartItemDiffCallback : DiffUtil.ItemCallback<Product>() {
+    override fun areItemsTheSame(oldItem: Product, newItem: Product): Boolean {
         return oldItem.quantity == newItem.quantity
     }
 
-    override fun areContentsTheSame(oldItem: ReactProduct, newItem: ReactProduct): Boolean {
+    override fun areContentsTheSame(oldItem: Product, newItem: Product): Boolean {
         return oldItem == newItem
     }
 }

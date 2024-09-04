@@ -1,7 +1,7 @@
 package com.simplifiedkiosk.repository
 
 import com.simplifiedkiosk.model.Cart
-import com.simplifiedkiosk.model.ReactProduct
+import com.simplifiedkiosk.model.Product
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
@@ -17,12 +17,12 @@ class CartRepository @Inject constructor(
     }.catch { Result.failure<Map<String, String>>(it) }
 
 
-    fun addProductToCart(product: ReactProduct): Flow<Result<Map<String, String>>> = flow {
+    fun addProductToCart(product: Product): Flow<Result<Map<String, String>>> = flow {
         val result = cart.addProduct(product)
         emit(result)
     }.catch { Result.failure<Map<String, String>>(it) }
 
-    fun removeProductFromCart(product: ReactProduct): Flow<Result<Map<String, String>>> = flow {
+    fun removeProductFromCart(product: Product): Flow<Result<Map<String, String>>> = flow {
         val result = cart.removeProduct(product)
         emit(result)
     }.catch { Result.failure<Map<String, String>>(it) }
@@ -31,7 +31,7 @@ class CartRepository @Inject constructor(
 
     fun getCartTotalQuantity():Int = cart.getTotalQuantity()
 
-    fun getCartItems(): List<ReactProduct> {
+    fun getCartItems(): List<Product> {
         return cart.getProducts()
     }
 

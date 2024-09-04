@@ -4,7 +4,6 @@ import android.Manifest
 import android.location.Address
 import android.location.Geocoder
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,7 +18,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.simplifiedkiosk.R
 import com.simplifiedkiosk.databinding.FragmentCartBinding
-import com.simplifiedkiosk.model.ReactProduct
+import com.simplifiedkiosk.model.Product
 import com.simplifiedkiosk.utils.formatDoubleToCurrencyString
 import com.simplifiedkiosk.utils.showAlertDialog
 import com.simplifiedkiosk.viewmodel.CartState
@@ -42,7 +41,6 @@ class CartFragment : Fragment(), EasyPermissions.PermissionCallbacks {
     private lateinit var mCartAdapter: CartAdapter
     private var mCurrentAddress: Address? = null
     private var mSubTotal: Double = 0.0
-    private var mSelectedProduct : ReactProduct? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -101,11 +99,9 @@ class CartFragment : Fragment(), EasyPermissions.PermissionCallbacks {
                             showAlertDialog(requireContext(), title = "Error", message = "Failed to remove product from cart with error: ${state.error.message}")
                         }
                         is CartState.SuccessAddingProductToCart -> {
-                            Log.e(TAG, "onViewCreated: cart products size: ${cartViewModel.getCartProducts().size}" )
                             updateCartCalculations(cartViewModel.getCartTotalPrice(), 0.08, mCurrentAddress)
                         }
                         is CartState.SuccessRemovingProductFromCart -> {
-                            Log.e(TAG, "onViewCreated: cart products size: ${cartViewModel.getCartProducts().size}" )
                             updateCartCalculations(cartViewModel.getCartTotalPrice(), 0.08, mCurrentAddress)
                         }
                     }
@@ -165,14 +161,14 @@ class CartFragment : Fragment(), EasyPermissions.PermissionCallbacks {
         )
     }
 
-    private fun removeProductFromCart(product: ReactProduct) {
+    private fun removeProductFromCart(product: Product) {
         product.productId?.let {
             mCartAdapter.removeItem(it.toString())
         }
         cartViewModel.removeProductFromCart(product)
     }
 
-    private fun addProductToCart(product: ReactProduct) {
+    private fun addProductToCart(product: Product) {
         mCartAdapter.updateCartItem(product)
         cartViewModel.addProductToCart(product)
     }

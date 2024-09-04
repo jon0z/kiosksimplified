@@ -19,7 +19,7 @@ class CartTest {
 
     private lateinit var cart: Cart
     private lateinit var cartDao: CartDao
-    private var productMock: ReactProduct = ReactProduct(
+    private var productMock: Product = Product(
         productId = 123,
         title = "Product 1",
         price = 10.0,

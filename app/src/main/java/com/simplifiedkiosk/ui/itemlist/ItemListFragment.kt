@@ -2,7 +2,6 @@ package com.simplifiedkiosk.ui.itemlist
 
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
@@ -34,17 +33,18 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import androidx.core.view.MenuProvider
-import com.simplifiedkiosk.model.ReactProduct
+import com.simplifiedkiosk.model.Product
 
 
 private const val TAG = "ItemListFragment"
+
 @AndroidEntryPoint
 class ItemListFragment : Fragment(), MenuProvider {
 
     private val productsListViewModel: ProductListViewModel by viewModels()
     private lateinit var viewBinding: FragmentItemListBinding
 
-    private var mSelectedProduct by mutableStateOf<ReactProduct?>(null)
+    private var mSelectedProduct by mutableStateOf<Product?>(null)
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -57,34 +57,22 @@ class ItemListFragment : Fragment(), MenuProvider {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         requireActivity().addMenuProvider(this, viewLifecycleOwner, Lifecycle.State.RESUMED)
-        val toolBarTitle = (activity as AppCompatActivity).supportActionBar?.customView?.findViewById<TextView>(R.id.toolbar_title)
+        val toolBarTitle =
+            (activity as AppCompatActivity).supportActionBar?.customView?.findViewById<TextView>(R.id.toolbar_title)
         toolBarTitle?.text = "Products"
 
         viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED){
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
                 productsListViewModel.productsState.collectLatest { state ->
                     when (state) {
-                        is ProductStateResults.FetchProductsSuccess -> {
-
-                        }
-                        is ProductStateResults.FetchProductsError -> {
-                            Log.e(TAG, "failed to fetch products")
-                        }
-                        ProductStateResults.Loading -> {
-                            Log.e(TAG, "loading products")
-                        }
-
-                        is ProductStateResults.FailedLoadingCartProducts -> {
-                            Log.e(TAG, "failed to load cart products ${state.error}")
-                        }
+                        ProductStateResults.Loading -> {}
+                        is ProductStateResults.FailedLoadingCartProducts -> {}
                         is ProductStateResults.SuccessLoadingCartProducts -> {
                             val quantity = state.cartDetails["totalCartQuantity"]
                             viewBinding.viewCartButton.text = "View Cart ($quantity)"
                         }
 
-                        is ProductStateResults.FailedLoadingReactProducts -> {
-                            Log.e(TAG, "failed to load react products ${state.error}")
-                        }
+                        is ProductStateResults.FailedLoadingReactProducts -> {}
                         is ProductStateResults.SuccessLoadingReactProducts -> {
                             val products = state.list
                             viewBinding.composeView.setViewTreeLifecycleOwner(viewLifecycleOwner)
@@ -92,14 +80,13 @@ class ItemListFragment : Fragment(), MenuProvider {
                                 ProductList(
                                     products = products,
                                     onFavoriteClick = { productSelected ->
-                                        Log.e(TAG, "onViewCreated: *** favorite icon clicked... isFavorite = ${productSelected.isFavorite}", )
                                         productSelected.isFavorite?.let {
-                                            if (it){
-                                                Log.e(TAG,  "*** removing from favorites " )
+                                            if (it) {
                                                 productSelected.isFavorite = false
-                                                productsListViewModel.removeFromFavorites(productSelected)
+                                                productsListViewModel.removeFromFavorites(
+                                                    productSelected
+                                                )
                                             } else {
-                                                Log.e(TAG,  "*** adding from favorites " )
                                                 productSelected.isFavorite = true
                                                 productsListViewModel.addToFavorites(productSelected)
                                             }
@@ -113,15 +100,12 @@ class ItemListFragment : Fragment(), MenuProvider {
                         }
 
                         is ProductStateResults.FailedProductSearch -> {
-                            // search failed or returned no results. Display error and clear call to action
-                            // to search again or fetch products from server
-                            Log.e(TAG, "onViewCreated: failed product search")
                             showNoSearchResultsFoundAlert(true)
                             productsListViewModel.fetchReactProducts()
                         }
+
                         is ProductStateResults.SuccessfulProductSearch -> {
-                            Log.e(TAG, "onViewCreated: successful product search" )
-                            if(state.list.isEmpty()){
+                            if (state.list.isEmpty()) {
                                 showNoSearchResultsFoundAlert(true)
                             }
                             viewBinding.composeView.setViewTreeLifecycleOwner(viewLifecycleOwner)
@@ -130,7 +114,7 @@ class ItemListFragment : Fragment(), MenuProvider {
                                     products = state.list,
                                     onFavoriteClick = { product ->
                                         product.isFavorite?.let {
-                                            if (it){
+                                            if (it) {
                                                 product.isFavorite = false
                                                 productsListViewModel.removeFromFavorites(product)
                                             } else {
@@ -138,7 +122,7 @@ class ItemListFragment : Fragment(), MenuProvider {
                                                 productsListViewModel.addToFavorites(product)
                                             }
                                         }
-                                    } ,
+                                    },
                                     onItemClick = {
                                         itemClicked(it)
                                     })
@@ -146,36 +130,42 @@ class ItemListFragment : Fragment(), MenuProvider {
                         }
 
                         is ProductStateResults.AddedProductToFavoritesFailed -> {
-                            Log.e(TAG, "failed to add product to favorites. Reason = ${state.error}")
-                            Toast.makeText(requireActivity(), "Failed to add product to favorites", Toast.LENGTH_SHORT).show()
-                        }
-                        is ProductStateResults.AddedProductToFavoritesSuccess -> {
-                            // high light the favorite icon on button
-                            Log.e(TAG, "onViewCreated: successfully added product to favorites" )
+                            Toast.makeText(
+                                requireActivity(),
+                                "Failed to add product to favorites",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
 
+                        is ProductStateResults.AddedProductToFavoritesSuccess -> {}
+
                         is ProductStateResults.RemovedProductFromFavoritesFailed -> {
-                            Log.e(TAG, "failed to remove product from favorites. Reason = ${state.error}")
-                            Toast.makeText(requireActivity(), "Failed to remove product from favorites", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                requireActivity(),
+                                "Failed to remove product from favorites",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
-                        is ProductStateResults.RemovedProductFromFavoritesSuccess -> {
-                            //remove highlight
-                            Log.e(TAG, "onViewCreated: successfully removed product from favorites" )
-                        }
+
+                        is ProductStateResults.RemovedProductFromFavoritesSuccess -> {}
                     }
                 }
             }
         }
 
         viewBinding.viewCartButton.setOnClickListener {
-            if (productsListViewModel.getCartSize() != 0){
+            if (productsListViewModel.getCartSize() != 0) {
                 findNavController().navigate(R.id.action_itemListFragment_to_cartFragment)
             } else {
-                showAlertDialog(requireContext(), "Cart is empty", "Please add items to continue")
+                showAlertDialog(
+                    context = requireContext(),
+                    title = "Cart is empty",
+                    message = "Please add items to continue"
+                )
             }
         }
 
-        viewBinding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener{
+        viewBinding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 return query?.let {
                     viewBinding.searchView.visibility = View.GONE
@@ -186,7 +176,7 @@ class ItemListFragment : Fragment(), MenuProvider {
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                if (newText.isNullOrBlank()){
+                if (newText.isNullOrBlank()) {
                     viewBinding.searchView.visibility = View.GONE
                     productsListViewModel.fetchReactProducts()
                 }
@@ -200,9 +190,12 @@ class ItemListFragment : Fragment(), MenuProvider {
         }
     }
 
-    private fun itemClicked(product: ReactProduct) {
+    private fun itemClicked(product: Product) {
         mSelectedProduct = product
-        findNavController().navigate(R.id.action_itemListFragment_to_itemDetailsFragment, bundleOf("productId" to product.productId))
+        findNavController().navigate(
+            R.id.action_itemListFragment_to_itemDetailsFragment,
+            bundleOf("productId" to product.productId)
+        )
     }
 
     override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
@@ -215,26 +208,27 @@ class ItemListFragment : Fragment(), MenuProvider {
                 findNavController().navigate(R.id.action_itemListFragment_to_favoritesFragment)
                 true
             }
+
             R.id.action_search -> {
-                if(viewBinding.searchView.visibility != View.VISIBLE){
+                if (viewBinding.searchView.visibility != View.VISIBLE) {
                     viewBinding.searchView.visibility = View.VISIBLE
                 } else {
                     viewBinding.searchView.visibility = View.GONE
                 }
                 true
             }
+
             else -> false
         }
     }
 
     override fun onResume() {
         super.onResume()
-//        productsListViewModel.fetchProducts()
         productsListViewModel.fetchReactProducts()
     }
 
-    private fun showNoSearchResultsFoundAlert(show: Boolean = true){
-        if(show){
+    private fun showNoSearchResultsFoundAlert(show: Boolean = true) {
+        if (show) {
             viewBinding.composeView.visibility = View.GONE
             viewBinding.viewCartButton.visibility = View.GONE
             viewBinding.searchView.visibility = View.GONE
@@ -248,13 +242,12 @@ class ItemListFragment : Fragment(), MenuProvider {
         }
     }
 
-    private fun hideSoftKeyboard(hide: Boolean){
-        val imm = requireActivity().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        if(hide){
-            // hide soft keyboard
+    private fun hideSoftKeyboard(hide: Boolean) {
+        val imm =
+            requireActivity().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        if (hide) {
             imm.hideSoftInputFromWindow(viewBinding.searchView.windowToken, 0)
-        } else{
-            // show soft keyboard
+        } else {
             imm.showSoftInput(viewBinding.searchView, InputMethodManager.SHOW_IMPLICIT)
         }
 

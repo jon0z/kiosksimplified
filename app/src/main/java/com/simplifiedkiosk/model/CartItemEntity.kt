@@ -13,19 +13,8 @@ data class CartItemEntity(
     val quantity: Int?,
     var isFavorite: Boolean? = false
 ){
-    fun toProduct(): Product {
+    fun toReactProduct(): Product {
         return Product(
-            productId = itemId.toInt(),
-            title = title,
-            price = price,
-            description = description,
-            imageUrl = imgUrl,
-            quantity = quantity,
-        )
-    }
-
-    fun toReactProduct(): ReactProduct {
-        return ReactProduct(
             productId = itemId.toInt(),
             title = title,
             price = price?.toDouble(),

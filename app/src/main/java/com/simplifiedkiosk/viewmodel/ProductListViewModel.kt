@@ -1,13 +1,10 @@
 package com.simplifiedkiosk.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.simplifiedkiosk.model.Product
-import com.simplifiedkiosk.model.ReactProduct
 import com.simplifiedkiosk.repository.CartRepository
 import com.simplifiedkiosk.repository.FavoritesRepository
-import com.simplifiedkiosk.repository.ProductsRepository
 import com.simplifiedkiosk.repository.ReactProductsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,7 +18,6 @@ private const val TAG = "ProductListViewModel"
 
 @HiltViewModel
 class ProductListViewModel @Inject constructor(
-    private val productsRepository: ProductsRepository,
     private val cartRepository: CartRepository,
     private val reactProductsRepository: ReactProductsRepository,
     private val favoritesRepository: FavoritesRepository
@@ -31,23 +27,8 @@ class ProductListViewModel @Inject constructor(
     val productsState: StateFlow<ProductStateResults> = _productsState
 
     init {
-//        fetchProducts()
         fetchReactProducts()
         loadCartItems()
-    }
-
-    fun fetchProducts() {
-        viewModelScope.launch {
-//            productsRepository.fetchProducts().collectLatest { result ->
-//                result.fold(
-//                    { products ->
-//                        _productsState.value = ProductStateResults.FetchProductsSuccess(products)
-//                    },
-//                    { error ->
-//                        _productsState.value = ProductStateResults.FetchProductsError(error)
-//                    })
-//            }
-        }
     }
 
     fun fetchReactProducts(){
@@ -95,7 +76,7 @@ class ProductListViewModel @Inject constructor(
 
     fun getCartSize() = cartRepository.getCartTotalQuantity()
 
-    fun addToFavorites(product: ReactProduct) {
+    fun addToFavorites(product: Product) {
         viewModelScope.launch {
             favoritesRepository.addOrUpdateFavorite(product)
                 .collectLatest { result ->
@@ -111,7 +92,7 @@ class ProductListViewModel @Inject constructor(
         }
     }
 
-    fun removeFromFavorites(product: ReactProduct) {
+    fun removeFromFavorites(product: Product) {
         viewModelScope.launch {
             favoritesRepository.removeFavorite(product)
                 .collectLatest { result ->
@@ -129,16 +110,13 @@ class ProductListViewModel @Inject constructor(
 
 sealed class ProductStateResults {
     object Loading : ProductStateResults()
-    data class FetchProductsSuccess(val products: List<Product>) : ProductStateResults()
-    data class FetchProductsError(val error: Throwable) : ProductStateResults()
-
     data class SuccessLoadingCartProducts(val cartDetails: Map<String, String>) : ProductStateResults()
     data class FailedLoadingCartProducts(val error: Throwable) : ProductStateResults()
 
-    data class SuccessLoadingReactProducts(val list: List<ReactProduct>): ProductStateResults()
+    data class SuccessLoadingReactProducts(val list: List<Product>): ProductStateResults()
     data class FailedLoadingReactProducts(val error: Throwable): ProductStateResults()
 
-    data class SuccessfulProductSearch(val list: List<ReactProduct>): ProductStateResults()
+    data class SuccessfulProductSearch(val list: List<Product>): ProductStateResults()
     data class FailedProductSearch(val error: Throwable): ProductStateResults()
 
     data class AddedProductToFavoritesSuccess(val success: Boolean): ProductStateResults()

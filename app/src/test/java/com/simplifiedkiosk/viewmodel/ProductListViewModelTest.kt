@@ -1,10 +1,9 @@
 package com.simplifiedkiosk.viewmodel
 
 import com.google.common.truth.Truth.assertThat
-import com.simplifiedkiosk.model.ReactProduct
+import com.simplifiedkiosk.model.Product
 import com.simplifiedkiosk.repository.CartRepository
 import com.simplifiedkiosk.repository.FavoritesRepository
-import com.simplifiedkiosk.repository.ProductsRepository
 import com.simplifiedkiosk.repository.ReactProductsRepository
 import io.mockk.coEvery
 import io.mockk.every
@@ -24,7 +23,6 @@ import org.robolectric.RobolectricTestRunner
 class ProductListViewModelTest {
 
     private lateinit var viewModel: ProductListViewModel
-    private val productsRepository: ProductsRepository = mockk()
     private val reactProductsRepository: ReactProductsRepository = mockk()
     private val cartRepository: CartRepository = mockk()
     private val favoritesRepository: FavoritesRepository = mockk()
@@ -32,7 +30,6 @@ class ProductListViewModelTest {
     @Before
     fun setup() {
         viewModel = ProductListViewModel(
-            productsRepository,
             cartRepository,
             reactProductsRepository,
             favoritesRepository
@@ -42,7 +39,7 @@ class ProductListViewModelTest {
     @Test
     fun `fetchReactProducts success`() = runTest {
         // Arrange
-        val reactProducts = listOf(ReactProduct())
+        val reactProducts = listOf(Product())
         coEvery { reactProductsRepository.fetchReactProduct(any()) } returns flowOf(Result.success(reactProducts.first()))
         coEvery { reactProductsRepository.fetchReactProducts() } returns flowOf(Result.success(reactProducts))
 
@@ -58,7 +55,7 @@ class ProductListViewModelTest {
     fun `fetchReactProducts failure`() = runBlockingTest {
         // Arrange
         val error = Exception("Error")
-        val products = listOf(ReactProduct())
+        val products = listOf(Product())
         every { reactProductsRepository.fetchReactProducts() } returns flowOf(Result.failure(error))
 
         // Act
@@ -73,7 +70,7 @@ class ProductListViewModelTest {
     fun `searchForProducts success`() = runTest {
         // Arrange
         val query = "query"
-        val products = listOf(ReactProduct())
+        val products = listOf(Product())
         coEvery { reactProductsRepository.fetchReactProduct(any()) } returns flowOf(Result.success(products.first()))
         coEvery { reactProductsRepository.searchProducts(query) } returns flowOf(Result.success(products))
 
@@ -106,7 +103,7 @@ class ProductListViewModelTest {
         val cartSize = 10
         coEvery { cartRepository.getCartTotalQuantity() } returns cartSize
         coEvery { reactProductsRepository.fetchReactProduct(any()) } returns flowOf(Result.success(
-            ReactProduct()
+            Product()
         ))
 
         // Act
@@ -119,7 +116,7 @@ class ProductListViewModelTest {
     @Test
     fun `addToFavorites success`() = runTest {
         // Arrange
-        val product = ReactProduct()
+        val product = Product()
         val id = 1L
         coEvery { reactProductsRepository.fetchReactProduct(any()) } returns flowOf(Result.success(product))
         coEvery { favoritesRepository.addOrUpdateFavorite(product) } returns flowOf(Result.success(id))
@@ -135,7 +132,7 @@ class ProductListViewModelTest {
     @Test
     fun `addToFavorites failure`() = runTest {
         // Arrange
-        val product = ReactProduct()
+        val product = Product()
         val error = Exception("Error")
         every { favoritesRepository.addOrUpdateFavorite(product) } returns flowOf(Result.failure(error))
 
@@ -150,7 +147,7 @@ class ProductListViewModelTest {
     @Test
     fun `removeFromFavorites success`() = runTest {
         // Arrange
-        val product = ReactProduct()
+        val product = Product()
         val rowsAffected = 1
         coEvery { reactProductsRepository.fetchReactProduct(any()) } returns flowOf(Result.success(product))
         coEvery { favoritesRepository.removeFavorite(product) } returns flowOf(Result.success(rowsAffected))
@@ -166,7 +163,7 @@ class ProductListViewModelTest {
     @Test
     fun `removeFromFavorites failure`() = runTest {
         // Arrange
-        val product = ReactProduct()
+        val product = Product()
         val error = Exception("Error")
         coEvery { reactProductsRepository.fetchReactProduct(any()) } returns flowOf(Result.success(product))
         coEvery { favoritesRepository.removeFavorite(product) } returns flowOf(Result.failure(error))
