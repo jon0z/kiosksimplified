@@ -136,11 +136,16 @@ class CheckoutFragment : Fragment() {
             when(checkedId){
                 R.id.paymentCreditCard -> {
                     mSelectedPaymentMethod = "creditCard"
+
                 }
                 R.id.paymentGpay -> {
                     mSelectedPaymentMethod = "gpay"
                 }
             }
+        }
+
+        viewBinding.paymentsContainer.addNewCard.setOnClickListener {
+            findNavController().navigate(R.id.action_checkoutFragment_to_paymentsFragment)
         }
 
         viewBinding.addressContainer.addNewAddress.setOnClickListener {

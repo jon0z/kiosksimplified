@@ -58,6 +58,9 @@
         <action
             android:id="@+id/action_checkoutFragment_to_addressFragment"
             app:destination="@id/shippingAddressFragment"/>
+        <action
+            android:id="@+id/action_checkoutFragment_to_paymentsFragment"
+            app:destination="@id/paymentsFragment"/>
     </fragment>
 
     <fragment
@@ -82,6 +85,17 @@
         tools:layout="@layout/fragment_shipping_address">
         <action
             android:id="@+id/action_shippingAddressFragment_to_itemListFragment"
+            app:destination="@id/itemListFragment"/>
+    </fragment>
+
+
+    <fragment
+        android:id="@+id/paymentsFragment"
+        android:name="com.simplifiedkiosk.ui.checkout.PaymentsFragment"
+        android:label="Payments"
+        tools:layout="@layout/fragment_shipping_address">
+        <action
+            android:id="@+id/action_paymentsFragment_to_itemListFragment"
             app:destination="@id/itemListFragment"/>
     </fragment>
 

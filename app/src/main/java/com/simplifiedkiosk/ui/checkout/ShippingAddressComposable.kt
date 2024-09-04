@@ -3,6 +3,7 @@ package com.simplifiedkiosk.ui.checkout
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
@@ -121,12 +122,14 @@ fun ShippingAddressScreen(
             colors = TextFieldDefaults.textFieldColors(backgroundColor = Color.White, textColor = Color.LightGray)
         )
 
+        Spacer(modifier = Modifier.weight(1f))
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 16.dp),
             horizontalArrangement = Arrangement.SpaceAround
         ) {
+
             Button(
                 onClick = {
                     onShippingAddressSaved()
@@ -135,7 +138,7 @@ fun ShippingAddressScreen(
                 modifier = Modifier
                     .weight(1f)
                     .padding(8.dp),
-                colors = ButtonDefaults.buttonColors(backgroundColor = Color.Blue)
+                colors = ButtonDefaults.buttonColors(backgroundColor = Color(color = 0XFF007BFF))
             ) {
                 Text("Save",
                     color = Color.White)
@@ -149,7 +152,7 @@ fun ShippingAddressScreen(
                 modifier = Modifier
                     .weight(1f)
                     .padding(8.dp),
-                colors = ButtonDefaults.outlinedButtonColors(backgroundColor = Color.White, contentColor = Color.Blue)
+                colors = ButtonDefaults.outlinedButtonColors(backgroundColor = Color.White, contentColor = Color(color = 0XFF007BFF))
             ) {
                 Text("Cancel")
             }
