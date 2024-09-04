@@ -1,4 +1,9 @@
-# Project structure
+# Simplified Kiosk App
+
+![screenshot of the app in action](app_screen_recording.gif)
+
+
+## Project structure
 
 The main `app` directory is the root of the Android app. It contains all the components that make up the app. 
 The subdirectories of `app` are:
@@ -23,6 +28,12 @@ The ViewModels use Flow to notify the UI of any changes to the state. For exampl
 to notify the `ItemDetailsFragment` of the details of the item to be displayed. 
 The `ItemDetailsFragment` observes this Flow and updates the UI accordingly. This allows the app to be more modular and easier to test.
 
+The app also uses the following dependencies:
+- Room persistence library for caching data locally.
+- Retrofit to make network requests.
+- Kotlin Flow and Coroutines for asynchronous operations.
+- Jetpack's Navigation component to navigate between fragments.
+- The UI is built using a mixed of Jetpack Compose and XML views.
 
 
 ## How to run this project in Android Studio
@@ -31,4 +42,3 @@ The `ItemDetailsFragment` observes this Flow and updates the UI accordingly. Thi
 2. Open this project in Android Studio
 3. Use the Import option to open the project
 4. Run the app on an emulator or a physical device
-
