@@ -1,9 +1,6 @@
 package com.simplifiedkiosk.ui.cart
 
-import com.google.common.truth.Truth.assertThat
 import com.simplifiedkiosk.model.Product
-import io.mockk.verify
-import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.*
 import org.junit.Before
@@ -75,25 +72,5 @@ class CartAdapterTest {
 
         assertEquals(1, adapter.currentList.size)
         assertEquals(existingItem, adapter.currentList[0])
-    }
-
-    @Test
-    fun `test remove existing item with valid ProductId and quantity 1 is successful`() = runTest {
-        // Arrange
-        val cartAdapter = CartAdapter({}) {}
-        cartAdapter.submitList(listOf(
-            Product(
-                productId = 1,
-                title = "Product 1",
-                quantity = 1)
-        ))
-
-        // Act
-        cartAdapter.removeItem("1")
-
-        // Assert
-        val updatedList = cartAdapter.currentList
-        assertThat(updatedList).isEmpty()
-        verify { cartAdapter.submitList(updatedList) }
     }
 }

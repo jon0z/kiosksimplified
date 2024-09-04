@@ -65,6 +65,20 @@ class CartViewModel @Inject constructor(
         }
     }
 
+    fun clearCart() {
+        viewModelScope.launch {
+            cartRepository.clearCart().collectLatest { result ->
+                result.fold(
+                    {
+                        _cartState.value = CartState.SuccessClearingCart(it)
+                    },
+                    {
+                        _cartState.value = CartState.FailedClearingCart(it)
+                    })
+            }
+        }
+    }
+
     fun addProductToCart(cartProduct: Product) {
         viewModelScope.launch {
             cartRepository.addProductToCart(cartProduct).collectLatest { result ->
@@ -104,4 +118,7 @@ sealed class CartState {
 
     data class SuccessAddingProductToCart(val cartDetails: Map<String, String>) : CartState()
     data class FailedAddingProductToCart(val error: Throwable) : CartState()
+
+    data class SuccessClearingCart(val didCartClear: Boolean) : CartState()
+    data class FailedClearingCart(val error: Throwable) : CartState()
 }

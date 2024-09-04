@@ -10,7 +10,7 @@ import com.simplifiedkiosk.network.ReactProductsApiClient
 import com.simplifiedkiosk.network.ReacProductsApiService
 import com.simplifiedkiosk.repository.CartRepository
 import com.simplifiedkiosk.repository.FavoritesRepository
-import com.simplifiedkiosk.repository.ReactProductsRepository
+import com.simplifiedkiosk.repository.ProductsRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -53,8 +53,8 @@ object AppModule {
     }
 
     @Provides
-    fun provideReactProductsRepository(productsApiService: ReacProductsApiService): ReactProductsRepository {
-        return ReactProductsRepository(productsApiService)
+    fun provideReactProductsRepository(productsApiService: ReacProductsApiService): ProductsRepository {
+        return ProductsRepository(productsApiService)
     }
 
     @Provides

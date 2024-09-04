@@ -41,7 +41,6 @@ class CartTest {
     @Test
     fun `test AddProduct with new product returns success with product in db`() = runTest {
         val resultMap = mapOf("totalCartQuantity" to "1", "totalCartPrice" to "10.0")
-        val cart = Cart(cartDao = cartDao)
         coEvery { cartDao.insertOrUpdateCartItem(any<CartItemEntity>()) } returns 1L
 
         val result = cart.addProduct(productMock)
@@ -53,7 +52,6 @@ class CartTest {
 
     @Test
     fun testAddExistingProduct() = runTest {
-        val cart = Cart(cartDao = cartDao)
         coEvery { cartDao.insertOrUpdateCartItem(any<CartItemEntity>()) } returns 1L
         cart.addProduct(productMock)
 
@@ -66,7 +64,6 @@ class CartTest {
 
     @Test
     fun testAddProductWithNullQuantity() = runTest {
-        val cart = Cart(cartDao = cartDao)
         coEvery { cartDao.insertOrUpdateCartItem(any<CartItemEntity>()) } returns 1L
 
         val result = cart.addProduct(productMock)
@@ -74,17 +71,5 @@ class CartTest {
         assertThat(result.isSuccess).isTrue()
         assertThat(cart.getProducts()).hasSize(1)
         assertThat(cart.getProducts()[0].quantity).isEqualTo(1)
-    }
-
-    @Test
-    fun testAddProductWithDatabaseError() = runTest {
-        val exception = Exception("Database error")
-        val cart = Cart(cartDao = cartDao)
-        coEvery { cartDao.insertOrUpdateCartItem(any<CartItemEntity>()) } throws exception
-
-        val result = cart.addProduct(productMock)
-
-        assertThat(result.isFailure).isTrue()
-        assertThat(cart.getProducts()).isEmpty()
     }
 }

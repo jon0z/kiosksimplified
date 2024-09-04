@@ -5,7 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.simplifiedkiosk.model.Product
 import com.simplifiedkiosk.repository.CartRepository
 import com.simplifiedkiosk.repository.FavoritesRepository
-import com.simplifiedkiosk.repository.ReactProductsRepository
+import com.simplifiedkiosk.repository.ProductsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,7 +19,7 @@ private const val TAG = "ProductListViewModel"
 @HiltViewModel
 class ProductListViewModel @Inject constructor(
     private val cartRepository: CartRepository,
-    private val reactProductsRepository: ReactProductsRepository,
+    private val productsRepository: ProductsRepository,
     private val favoritesRepository: FavoritesRepository
 ) : ViewModel() {
 
@@ -33,7 +33,7 @@ class ProductListViewModel @Inject constructor(
 
     fun fetchReactProducts(){
         viewModelScope.launch {
-            reactProductsRepository.fetchReactProducts()
+            productsRepository.fetchReactProducts()
                 .collectLatest {result ->
                     result.fold(
                         { products ->
@@ -48,7 +48,7 @@ class ProductListViewModel @Inject constructor(
 
     fun searchForProducts(query: String) {
         viewModelScope.launch {
-            reactProductsRepository.searchProducts(query = query)
+            productsRepository.searchProducts(query = query)
                 .collectLatest { result ->
                     result.fold(
                         { products ->

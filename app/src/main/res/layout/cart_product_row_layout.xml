@@ -40,17 +40,6 @@
                 android:maxLines="1"/>
 
             <TextView
-                android:id="@+id/cartItemDescriptionTextView"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="No olives, 35, thick, plus cheese"
-                android:textAppearance="@style/TextAppearance.AppCompat.Small"
-                android:textColor="@android:color/darker_gray"
-                android:maxLines="2"
-                android:ellipsize="end"
-                />
-
-            <TextView
                 android:id="@+id/cart_item_price_textview"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

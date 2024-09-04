@@ -35,14 +35,12 @@ class CartAdapter(private val onRemoveItemClick: (Product) -> Unit, private val 
         private val itemNameTextView: TextView = itemView.findViewById(R.id.cart_item_name_textview)
         private val itemQuantityTextView: TextView = itemView.findViewById(R.id.cart_item_quantity)
         private val itemPriceTextView: TextView = itemView.findViewById(R.id.cart_item_price_textview)
-        private val itemDescriptionTextView: TextView = itemView.findViewById(R.id.cartItemDescriptionTextView)
         private val itemRemoveButton: ImageButton = itemView.findViewById(R.id.decrease_quantity_btn)
         private val itemAddButton: ImageButton = itemView.findViewById(R.id.increase_quantity_btn)
         private val itemImage: ImageView = itemView.findViewById(R.id.productImage)
 
         fun bind(cartProduct: Product) {
             itemNameTextView.text = cartProduct.title
-            itemDescriptionTextView.text = cartProduct.description
             itemQuantityTextView.text = "Qty: ${cartProduct.quantity}"
             if(cartProduct.thumbnail != null){
                 Picasso.get().load(cartProduct.thumbnail).into(itemImage)

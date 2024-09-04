@@ -5,10 +5,14 @@ import android.location.Address
 import android.location.Geocoder
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.MenuProvider
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
@@ -34,7 +38,7 @@ import pub.devrel.easypermissions.EasyPermissions
 
 private const val TAG = "CartFragment"
 @AndroidEntryPoint
-class CartFragment : Fragment(), EasyPermissions.PermissionCallbacks {
+class CartFragment : Fragment(), EasyPermissions.PermissionCallbacks, MenuProvider {
 
     private val cartViewModel: CartViewModel by viewModels()
     private lateinit var viewBinding: FragmentCartBinding
@@ -52,6 +56,7 @@ class CartFragment : Fragment(), EasyPermissions.PermissionCallbacks {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        requireActivity().addMenuProvider(this, viewLifecycleOwner, Lifecycle.State.RESUMED)
         val toolBarTitle = (activity as AppCompatActivity).supportActionBar?.customView?.findViewById<TextView>(R.id.toolbar_title)
         toolBarTitle?.text = "Cart"
 
@@ -103,6 +108,28 @@ class CartFragment : Fragment(), EasyPermissions.PermissionCallbacks {
                         }
                         is CartState.SuccessRemovingProductFromCart -> {
                             updateCartCalculations(cartViewModel.getCartTotalPrice(), 0.08, mCurrentAddress)
+                        }
+
+                        is CartState.FailedClearingCart -> {
+                            showAlertDialog(
+                                context = requireContext(),
+                                title = "Error",
+                                message = "Failed to clear cart with error: ${state.error.message}"
+                            )
+                        }
+                        is CartState.SuccessClearingCart -> {
+                            // clear cart adapter and update calculations
+                            showAlertDialog(
+                                context = requireContext(),
+                                title = "Success",
+                                message = "Cart cleared successfully",
+                                positiveButtonText = "Ok",
+                                onPositiveClick = {
+                                    mCartAdapter.submitList(emptyList())
+                                    updateCartCalculations(0.0, 0.08, mCurrentAddress)
+                                    findNavController().popBackStack()
+                                }
+                            )
                         }
                     }
                 }
@@ -206,4 +233,28 @@ class CartFragment : Fragment(), EasyPermissions.PermissionCallbacks {
     override fun onPermissionsDenied(requestCode: Int, perms: MutableList<String>) {
         // User denied permissions, handle this case
     }
+
+
+    override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+        menuInflater.inflate(R.menu.cart_menu, menu)
+    }
+
+    override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
+        return when (menuItem.itemId) {
+            R.id.action_clear_cart -> {
+                showAlertDialog(
+                    context = requireContext(),
+                    title = "Clear Cart",
+                    message = "Are you sure you want to clear your cart?",
+                    positiveButtonText = "Yes",
+                    onPositiveClick = {
+                        cartViewModel.clearCart()
+                    }
+                )
+                true
+            }
+            else -> false
+        }
+    }
+
 }

@@ -6,7 +6,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
-class ReactProductsRepository @Inject constructor(
+class ProductsRepository @Inject constructor(
     private val productsApiService: ReacProductsApiService
 ) {
     fun fetchReactProducts(): Flow<Result<List<Product>>> = flow {

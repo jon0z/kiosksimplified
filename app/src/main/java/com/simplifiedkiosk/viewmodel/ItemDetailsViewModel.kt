@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.simplifiedkiosk.model.Product
 import com.simplifiedkiosk.repository.CartRepository
 import com.simplifiedkiosk.repository.FavoritesRepository
-import com.simplifiedkiosk.repository.ReactProductsRepository
+import com.simplifiedkiosk.repository.ProductsRepository
 
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.collectLatest
 @HiltViewModel
 class ItemDetailsViewModel @Inject constructor(
     private val cartRepository: CartRepository,
-    private val reactProductsRepository: ReactProductsRepository,
+    private val productsRepository: ProductsRepository,
     private val favoritesRepository: FavoritesRepository
 ) : ViewModel() {
 
@@ -27,7 +27,7 @@ class ItemDetailsViewModel @Inject constructor(
 
     fun loadProductDetails(productId: Int) {
         viewModelScope.launch {
-            reactProductsRepository.fetchReactProduct(productId).collectLatest { result ->
+            productsRepository.fetchReactProduct(productId).collectLatest { result ->
                 result.fold({
                     _itemDetailsState.value = ItemDetailsState.SuccessLoadingReactProductDetails(it)
                 }, {
