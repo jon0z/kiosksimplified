@@ -27,6 +27,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.launch
+import kotlin.math.log
 
 
 private const val TAG = "CheckoutFragment"
@@ -35,6 +36,7 @@ class CheckoutFragment : Fragment() {
 
     private val checkoutViewModel: CheckoutViewModel by viewModels()
     private lateinit var viewBinding: FragmentCheckoutBinding
+    private var mSelectedPaymentMethod: String = "gpay"
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -48,9 +50,9 @@ class CheckoutFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val toolBarTitle = (activity as AppCompatActivity).supportActionBar?.customView?.findViewById<TextView>(R.id.toolbar_title)
         toolBarTitle?.text = "Checkout"
-        arguments?.let {
-            it.getParcelable<CheckoutState>("checkoutState")?.let {
-                checkoutViewModel.loadCheckOutStateFromCart(it)
+        arguments?.let { bundle ->
+            bundle.getParcelable<CheckoutState>("checkoutState")?.let { checkoutState ->
+                checkoutViewModel.loadCheckOutStateFromCart(checkoutState)
             }
         }
 
@@ -100,6 +102,45 @@ class CheckoutFragment : Fragment() {
                                     viewBinding.addressContainer.deliveryAddressDetails.text = formatAddressToStringAddressDetails(it)
                                 }
                             }
+
+                            is CheckoutStateResults.ClearedCartSuccess -> {
+                                findNavController().navigate(R.id.action_checkoutFragment_to_itemListFragment)
+                            }
+                            is CheckoutStateResults.FailedClearedCart -> {
+                                showAlertDialog(
+                                    context = requireActivity(),
+                                    title = "Error",
+                                    message = state.error.message ?: "Failed to clear cart",
+                                )
+                            }
+
+                            is CheckoutStateResults.FailedPaymentProcessing -> {
+                                showAlertDialog(
+                                    context = requireActivity(),
+                                    title = "Payment Failed",
+                                    message = "There was an error processing your payment. Please try again.",
+                                    positiveButtonText = "Retry",
+                                    negativeButtonText = "Cancel",
+                                    onPositiveClick = {
+                                        handlePaymentProcess()
+                                    },
+                                    onNegativeClick = {
+                                        findNavController().navigate(R.id.action_checkoutFragment_to_itemListFragment)
+                                    }
+                                )
+                            }
+                            is CheckoutStateResults.SuccessfulPaymentProcessed -> {
+                                showAlertDialog(
+                                    context = requireActivity(),
+                                    title =  "Payment Successful",
+                                    message = "Your payment was processed successfully!",
+                                    positiveButtonText = "Back to products",
+                                    onPositiveClick = {
+                                        checkoutViewModel.emptyCart()
+                                        findNavController().navigate(R.id.action_checkoutFragment_to_itemListFragment)
+                                    }
+                                )
+                            }
                         }
                     }
             }
@@ -109,11 +150,17 @@ class CheckoutFragment : Fragment() {
             when(checkedId){
                 R.id.paymentCreditCard -> {
                     Log.e(TAG, "onViewCreated: selected credit card" )
+                    mSelectedPaymentMethod = "creditCard"
                 }
                 R.id.paymentGpay -> {
                     Log.e(TAG, "onViewCreated: selected Google Pay", )
+                    mSelectedPaymentMethod = "gpay"
                 }
             }
+        }
+
+        viewBinding.addressContainer.addNewAddress.setOnClickListener {
+            findNavController().navigate(R.id.action_checkoutFragment_to_addressFragment)
         }
     }
 
@@ -125,33 +172,13 @@ class CheckoutFragment : Fragment() {
     }
 
     private fun handlePaymentProcess(){
-        val shippingAddress = ""
-        val paymentSuccessful = checkoutViewModel.processPayment(shippingAddress)
-        if (paymentSuccessful) {
-            showAlertDialog(
-                context = requireActivity(),
-                title =  "Payment Successful",
-                message = "Your payment was processed successfully!",
-                onPositiveClick = {}
-                )
-            // clear cart
-            // clear totals
-//            viewBinding.totalAmountTextView.text = ""
-            // clear address field
-//            viewBinding.shippingAddressEditText.text.clear()
-            hideSoftKeyboard()
-            // Navigate to a confirmation screen or back to the item list
-            findNavController().navigate(R.id.action_checkoutFragment_to_itemListFragment)
-
+        if(mSelectedPaymentMethod.isNotBlank()){
+            checkoutViewModel.processPayment(mSelectedPaymentMethod)
         } else {
             showAlertDialog(
                 context = requireActivity(),
-                title = "Payment Failed",
-                message = "There was an error processing your payment. Please try again.",
-                positiveButtonText = "Retry",
-                negativeButtonText = "Cancel",
-                onPositiveClick = {},
-                onNegativeClick = {}
+                title = "Missing Shipping Address",
+                message = "Please add shipping address before checkout",
             )
         }
     }

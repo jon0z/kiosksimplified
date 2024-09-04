@@ -34,4 +34,13 @@ class CartRepository @Inject constructor(
     fun getCartItems(): List<ReactProduct> {
         return cart.getProducts()
     }
+
+    fun clearCart(): Flow<Result<Boolean>> = flow {
+        val result = if (cart.clear()) {
+            Result.success(true)
+        } else {
+            Result.failure(Throwable("Failed to clear cart"))
+        }
+        emit(result)
+    }
 }

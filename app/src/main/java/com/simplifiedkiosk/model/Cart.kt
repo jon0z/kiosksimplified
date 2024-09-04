@@ -111,8 +111,10 @@ class Cart @Inject constructor(
 
 
     // Clear all items from the cart
-    fun clear() {
+    suspend fun clear(): Boolean {
         cartProducts.clear()
+        cartDao.deleteAllCartItems()
+        return getTotalQuantity() == 0
     }
 
     fun getTotalQuantity(): Int {

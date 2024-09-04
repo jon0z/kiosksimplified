@@ -55,6 +55,9 @@
         <action
             android:id="@+id/action_checkoutFragment_to_itemListFragment"
             app:destination="@id/itemListFragment"/>
+        <action
+            android:id="@+id/action_checkoutFragment_to_addressFragment"
+            app:destination="@id/shippingAddressFragment"/>
     </fragment>
 
     <fragment
@@ -71,4 +74,15 @@
             app:destination="@+id/itemDetailsFragment"/>
 
     </fragment>
+
+    <fragment
+        android:id="@+id/shippingAddressFragment"
+        android:name="com.simplifiedkiosk.ui.checkout.ShippingAddressFragment"
+        android:label="ShippingAddress"
+        tools:layout="@layout/fragment_shipping_address">
+        <action
+            android:id="@+id/action_shippingAddressFragment_to_itemListFragment"
+            app:destination="@id/itemListFragment"/>
+    </fragment>
+
 </navigation>

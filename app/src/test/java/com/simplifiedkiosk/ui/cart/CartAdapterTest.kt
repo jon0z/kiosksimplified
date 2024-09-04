@@ -2,6 +2,7 @@ package com.simplifiedkiosk.ui.cart
 
 import com.google.common.truth.Truth.assertThat
 import com.simplifiedkiosk.model.Product
+import com.simplifiedkiosk.model.ReactProduct
 import io.mockk.verify
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -25,10 +26,10 @@ class CartAdapterTest {
     @Test
     fun `test adding to existing item with quantity greater than 1`() {
         val productId = 1
-        val existingItem = Product(productId, "Existing Item", quantity = 2)
-        val newProduct = Product(productId, "Existing Item", quantity = 1)
+        val existingItem = ReactProduct(productId, "Existing Item", quantity = 2)
+        val newProduct = ReactProduct(productId, "Existing Item", quantity = 1)
         val adapter = CartAdapter({}) {}
-        adapter.submitList(listOf(existingItem))
+        adapter.submitList(mutableListOf(existingItem))
 
         adapter.updateCartItem(newProduct)
 
@@ -39,8 +40,8 @@ class CartAdapterTest {
     @Test
         fun `test update existing item with quantity equal to 1`() {
         val productId = 1
-        val existingItem = Product(productId, "Existing Item", quantity = 1)
-        val newProduct = Product(productId, "Existing Item", quantity = 1)
+        val existingItem = ReactProduct(productId, "Existing Item", quantity = 1)
+        val newProduct = ReactProduct(productId, "Existing Item", quantity = 1)
         val adapter = CartAdapter({}) {}
         adapter.submitList(listOf(existingItem))
 
@@ -53,7 +54,7 @@ class CartAdapterTest {
     @Test
     fun `test adding new item to list`() {
         val productId = 1
-        val newProduct = Product(productId, "New Item", quantity = 1)
+        val newProduct = ReactProduct(productId, "New Item", quantity = 1)
         val adapter = CartAdapter({}) {}
 
         adapter.updateCartItem(newProduct)
@@ -65,8 +66,8 @@ class CartAdapterTest {
     @Test
     fun `test update item with null quantity`() {
         val productId = 1
-        val existingItem = Product(productId, "Existing Item", quantity = null)
-        val newProduct = Product(productId, "Existing Item", quantity = 1)
+        val existingItem = ReactProduct(productId, "Existing Item", quantity = null)
+        val newProduct = ReactProduct(productId, "Existing Item", quantity = 1)
         val currentList = mutableListOf(existingItem)
         val adapter = CartAdapter({}) {}
         adapter.submitList(currentList)
@@ -82,7 +83,7 @@ class CartAdapterTest {
         // Arrange
         val cartAdapter = CartAdapter({}) {}
         cartAdapter.submitList(listOf(
-            Product(
+            ReactProduct(
                 productId = 1,
                 title = "Product 1",
                 quantity = 1)

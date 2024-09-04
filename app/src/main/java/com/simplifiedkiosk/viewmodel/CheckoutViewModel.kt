@@ -4,7 +4,6 @@ import android.location.Address
 import android.os.Parcelable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.simplifiedkiosk.model.Product
 import com.simplifiedkiosk.model.ReactProduct
 import com.simplifiedkiosk.repository.CartRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -29,14 +28,15 @@ class CheckoutViewModel @Inject constructor(
         cartProducts = emptyList()
     )
 
-    fun processPayment(shippingAddress: String): Boolean {
+    fun processPayment(paymentMethod: String) {
         // Simulate payment processing logic
-        return if (shippingAddress.isNotBlank()) {
-            // Here you would integrate with a real payment gateway
-//            clearCart()
-            true
-        } else {
-            false
+        // Here you would integrate with a real payment gateway
+        viewModelScope.launch {
+            if(paymentMethod.isNotBlank()){
+                _checkoutState.value = CheckoutStateResults.SuccessfulPaymentProcessed(paymentMethod.isNotBlank())
+            } else{
+                _checkoutState.value = CheckoutStateResults.FailedPaymentProcessing(Throwable("Payment Failed. Please try again"))
+            }
         }
     }
 
@@ -71,6 +71,18 @@ class CheckoutViewModel @Inject constructor(
         }
     }
 
+    fun emptyCart(){
+        viewModelScope.launch {
+            cartRepository.clearCart().collectLatest { result ->
+                result.fold({ didClear ->
+                    _checkoutState.value = CheckoutStateResults.ClearedCartSuccess(didClear)
+                }, {
+                    _checkoutState.value = CheckoutStateResults.FailedClearedCart(it)
+                })
+            }
+        }
+    }
+
     fun removeCartProduct(cartProduct: ReactProduct) {
         viewModelScope.launch {
             cartRepository.removeProductFromCart(cartProduct).collectLatest {result ->
@@ -97,8 +109,11 @@ sealed class CheckoutStateResults {
     object Loading: CheckoutStateResults()
     data class LoadedCartItems(val checkoutState: CheckoutState): CheckoutStateResults()
     data class FailedLoadingCartItems(val error: Throwable): CheckoutStateResults()
-
     data class ReceivedProductsFromCartSummary(val checkoutState: CheckoutState): CheckoutStateResults()
+    data class ClearedCartSuccess(val didClear: Boolean): CheckoutStateResults()
+    data class FailedClearedCart(val error: Throwable): CheckoutStateResults()
+    data class FailedPaymentProcessing(val error: Throwable): CheckoutStateResults()
+    data class SuccessfulPaymentProcessed(val didProcess: Boolean): CheckoutStateResults()
 
 }
 

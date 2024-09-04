@@ -88,7 +88,10 @@ class CartFragment : Fragment(), EasyPermissions.PermissionCallbacks {
                                     val geocoder = Geocoder(requireContext())
                                     geocoder.getFromLocation(it.latitude, it.longitude, 1)
                                 }.filterNotNull()
-                                .collectLatest { updateCartCalculations(mSubTotal, 0.08, it.first()) }
+                                .collectLatest {
+                                    enableButtons(true)
+                                    updateCartCalculations(mSubTotal, 0.08, it.first())
+                                }
                         }
 
                         is CartState.FailedAddingProductToCart -> {
@@ -99,26 +102,11 @@ class CartFragment : Fragment(), EasyPermissions.PermissionCallbacks {
                         }
                         is CartState.SuccessAddingProductToCart -> {
                             Log.e(TAG, "onViewCreated: cart products size: ${cartViewModel.getCartProducts().size}" )
-//                            mCartAdapter.submitList(cartViewModel.getCartProducts())
-//                            Log.e(TAG, "onViewCreated: submitted cart products list to CartAdapter" )
-//                            mSelectedProduct?.let {
-//                                mCartAdapter.updateCartItem(it)
-//                            }
-                            // update calculations
                             updateCartCalculations(cartViewModel.getCartTotalPrice(), 0.08, mCurrentAddress)
                         }
                         is CartState.SuccessRemovingProductFromCart -> {
                             Log.e(TAG, "onViewCreated: cart products size: ${cartViewModel.getCartProducts().size}" )
-//                            mCartAdapter.submitList(cartViewModel.getCartProducts())
-//                            Log.e(TAG, "onViewCreated: submitted cart products list to CartAdapter" )
-//                            mSelectedProduct?.let { product ->
-//                                product.productId?.let {
-//                                    mCartAdapter.removeItem(it.toString())
-//                                }
-//                            }
-                            // update calculations
                             updateCartCalculations(cartViewModel.getCartTotalPrice(), 0.08, mCurrentAddress)
-
                         }
                     }
                 }
@@ -151,7 +139,15 @@ class CartFragment : Fragment(), EasyPermissions.PermissionCallbacks {
         }
     }
 
-
+    private fun enableButtons(enable: Boolean){
+        if(enable){
+            viewBinding.checkoutButton.isEnabled = true
+            viewBinding.cartDiscountContainer.applyDiscountButton.isEnabled = true
+        } else {
+            viewBinding.checkoutButton.isEnabled = false
+            viewBinding.cartDiscountContainer.applyDiscountButton.isEnabled = false
+        }
+    }
 
     private fun hasLocationPermission(): Boolean {
         return EasyPermissions.hasPermissions(
@@ -197,11 +193,11 @@ class CartFragment : Fragment(), EasyPermissions.PermissionCallbacks {
             viewBinding.cartCalculationsContainer.deliveryFeeLabel.textSize = 12f
             viewBinding.cartCalculationsContainer.deliveryFeeLabel.text = "Ship to $city, $state:"
 
-            val deliveryFee = subtotal * 0.25 // 25% of subtotal
+            val deliveryFee = subtotal * 0.15 // 25% of subtotal
             val deliveryFeeFmt = formatDoubleToCurrencyString(deliveryFee)
             viewBinding.cartCalculationsContainer.deliveryFeeTextview.text = "$deliveryFeeFmt"
 
-            val netTotal = subtotal.plus(tax).plus(deliveryFee)
+            val netTotal = subtotal.plus(totalTax).plus(deliveryFee)
             val netTotalFmt = formatDoubleToCurrencyString(netTotal)
             viewBinding.cartCalculationsContainer.totalTextview.text = "$netTotalFmt"
         }

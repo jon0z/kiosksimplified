@@ -34,5 +34,6 @@
         android:text="Checkout"
         android:textAllCaps="false"
         android:layout_marginTop="16dp"
-        android:layout_alignParentBottom="true"/>
+        android:layout_alignParentBottom="true"
+        android:enabled="false"/>
 </RelativeLayout>

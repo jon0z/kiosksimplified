@@ -21,10 +21,6 @@ interface CartDao {
     @Query("DELETE FROM cart_items")
     suspend fun deleteAllCartItems()
 
-
-
-
-
     @Query("SELECT * FROM cart_items")
     suspend fun getAllCartItems(): List<CartItemEntity>
 
