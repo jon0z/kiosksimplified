@@ -23,16 +23,4 @@ class ProductsRepository @Inject constructor(
         }
     }.retry (2)
         .catch { emit(Result.failure(it)) }
-
-    fun fetchProductById(productId: String): Flow<Result<Product>> = flow {
-        val response = apiService.fetchProductById(productId)
-        if (response.isSuccessful) {
-            response.body()?.let { product ->
-                emit(Result.success(product))
-            } ?: emit(Result.failure(Throwable("No product found")))
-        } else {
-            emit(Result.failure(Throwable("Failed to fetch product")))
-        }
-    }.retry (2)
-        .catch { emit(Result.failure(it)) }
 }

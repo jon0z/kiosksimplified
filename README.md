@@ -1,4 +1,4 @@
-project structure
+# Project structure
 
 The main `app` directory is the root of the Android app. It contains all the components that make up the app. 
 The subdirectories of `app` are:
@@ -21,4 +21,11 @@ The Fragments in the `ui` package act as the View and observe the state in the V
 The ViewModels use Flow to notify the UI of any changes to the state. For example, the `ItemDetailsViewModel` uses Flow 
 to notify the `ItemDetailsFragment` of the details of the item to be displayed. The `ItemDetailsFragment` observes this Flow and updates the UI accordingly. 
 This allows the app to be more modular and easier to test.
+
+## How to run this project in Android Studio
+
+1. Clone this repository
+2. Open this project in Android Studio
+3. Build the project
+4. Run the app on an emulator or a physical device
 

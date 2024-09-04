@@ -50,7 +50,6 @@ class ItemListFragment : Fragment(), MenuProvider {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        Log.e(TAG, "onCreateView: called", )
         viewBinding = FragmentItemListBinding.inflate(inflater, container, false)
         return viewBinding.root
     }
@@ -230,7 +229,7 @@ class ItemListFragment : Fragment(), MenuProvider {
 
     override fun onResume() {
         super.onResume()
-        productsListViewModel.fetchProducts()
+//        productsListViewModel.fetchProducts()
         productsListViewModel.fetchReactProducts()
     }
 

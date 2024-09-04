@@ -1,6 +1,5 @@
 package com.simplifiedkiosk.ui.itemlist
 
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,11 +20,9 @@ import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -114,7 +111,6 @@ fun ProductListItem(
             IconButton(onClick = {
                 onFavoriteClick()
             }) {
-                Log.e("ProductListItem", "*** clicked capture in Icon composable isFavorite = $isFavorite", )
                 isFavorite?.let {
                     Icon(
                         imageVector = if(it) Icons.Default.Favorite else Icons.Default.FavoriteBorder,

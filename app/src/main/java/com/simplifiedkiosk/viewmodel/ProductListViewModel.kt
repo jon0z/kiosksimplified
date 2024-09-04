@@ -31,22 +31,22 @@ class ProductListViewModel @Inject constructor(
     val productsState: StateFlow<ProductStateResults> = _productsState
 
     init {
-        fetchProducts()
+//        fetchProducts()
         fetchReactProducts()
         loadCartItems()
     }
 
     fun fetchProducts() {
         viewModelScope.launch {
-            productsRepository.fetchProducts().collectLatest { result ->
-                result.fold(
-                    { products ->
-                        _productsState.value = ProductStateResults.FetchProductsSuccess(products)
-                    },
-                    { error ->
-                        _productsState.value = ProductStateResults.FetchProductsError(error)
-                    })
-            }
+//            productsRepository.fetchProducts().collectLatest { result ->
+//                result.fold(
+//                    { products ->
+//                        _productsState.value = ProductStateResults.FetchProductsSuccess(products)
+//                    },
+//                    { error ->
+//                        _productsState.value = ProductStateResults.FetchProductsError(error)
+//                    })
+//            }
         }
     }
 
